@@ -1,6 +1,6 @@
 # Tools
 
-All ten tools become available after a successful session start. Schemas are TypeBox shapes consumed by `pi.registerTool`.
+All eight tools become available after a successful session start. Schemas are TypeBox shapes consumed by `pi.registerTool`.
 
 ## Lifecycle tools
 

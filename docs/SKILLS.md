@@ -1,10 +1,10 @@
 # Skills
 
-The extension ships seven markdown skills inside `skills/` and surfaces their absolute paths through the `resources_discover` event:
+The extension ships five markdown skills inside `skills/` and surfaces their absolute paths through the `resources_discover` event:
 
 ```ts
 pi.on("resources_discover", async () => {
-  return { skillPaths: [/* 7 paths */] };
+  return { skillPaths: [/* 5 paths */] };
 });
 ```
 

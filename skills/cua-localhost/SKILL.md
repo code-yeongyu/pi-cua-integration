@@ -49,7 +49,7 @@ delegation.
 
 ### Linux
 - X11 desktop (Wayland is NOT supported by Cua's localhost mode)
-- `xdotool` and `scrot` packages installed
+- `cua-auto` controls input through pynput and captures screenshots through its Python screen backend
 
 ### Windows
 - Localhost mode is best-effort on Windows; prefer local QEMU VM instead.

@@ -53,7 +53,7 @@ Sandbox tools (`cua_sandbox_start`, `cua_sandbox_stop`, `cua_sandbox_list`) are 
 ### Prerequisites
 
 - **macOS**: Accessibility + Screen Recording + Automation permissions granted to the Pi binary.
-- **Linux**: X11 desktop (Wayland not supported), `xdotool` + `scrot`.
+- **Linux**: X11 desktop (Wayland not supported by pynput-backed input); screenshot support comes from `cua-auto`.
 - **Windows**: prefer `local` mode with QEMU.
 
 ## `cloud`

@@ -12,7 +12,7 @@ Cua ([trycua/cua](https://github.com/trycua/cua)) computer-use integration for t
 | Mode        | Where actions run               | Sandbox | Needs API key | Runtimes                            |
 |-------------|---------------------------------|---------|---------------|-------------------------------------|
 | `local` ★   | Local container or VM           | yes     | no            | Docker (XFCE/Kasm), QEMU, Lume, Tart |
-| `localhost` | Your host machine               | no      | no            | cua-auto (xdotool / cliclick)        |
+| `localhost` | Your host machine               | no      | no            | cua-auto (pynput + Pillow/AppKit)    |
 | `cloud`     | cua.ai-hosted VM                | yes     | `CUA_API_KEY` | Cua cloud regions                    |
 
 ★ default. If `mode: "cloud"` is selected but `CUA_API_KEY` is missing, the extension falls back to `local` with a warning.
@@ -58,7 +58,7 @@ See [docs/TOOLS.md](docs/TOOLS.md) for full schemas and examples.
 
 ## Skills
 
-The extension contributes seven markdown skills via the `resources_discover` event. Pi's skill loader can auto-discover them, and the agent learns when to use the tools without prompt engineering.
+The extension contributes five markdown skills via the `resources_discover` event. Pi's skill loader can auto-discover them, and the agent learns when to use the tools without prompt engineering.
 
 | Skill                | When the agent loads it                              |
 |----------------------|------------------------------------------------------|
@@ -104,7 +104,7 @@ See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 |  |                v                             |  |
 |  |   python/daemon.py (Python subprocess)       |  |
 |  |   - manages Sandbox/Localhost instances      |  |
-|  |   - delegates to cua + cua-agent             |  |
+|  |   - delegates to cua + cua-auto              |  |
 |  +---------------------------------------------+  |
 +--------------------------------------------------+
 ```
