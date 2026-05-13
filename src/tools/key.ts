@@ -11,7 +11,7 @@ export const KeyParams = Type.Object(
 			[
 				Type.String({
 					description:
-						"Single key or chord, e.g. 'Return', 'ctrl+s'. Cua normalizes these to xdotool/PyAutoGUI conventions.",
+						"Single key or chord, e.g. 'Return', 'ctrl+s'. Cua maps these to pynput Key/KeyCode values.",
 				}),
 				Type.Array(Type.String(), {
 					description: "Sequence of key chords to press in order.",
