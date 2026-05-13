@@ -50,7 +50,6 @@ or QEMU for full VMs. No account is required.
 | `cua_type`           | Type text                                        |
 | `cua_key`            | Press a key chord (`ctrl+s`, `Return`, etc.)     |
 | `cua_scroll`         | Scroll at coordinates                            |
-| `cua_shell`          | Run a shell command in the target                |
 | `cua_run_task`       | Hand off a high-level task to Cua's ComputerAgent |
 
 ## Quick recipes
@@ -60,7 +59,6 @@ or QEMU for full VMs. No account is required.
   ```
   cua_sandbox_start({ os: "linux", kind: "container" })
   cua_screenshot()
-  cua_shell({ command: "uname -a" })
   cua_sandbox_stop({ name: "<returned-name>" })
   ```
 - **High-level task in a sandbox:**
@@ -75,7 +73,6 @@ or QEMU for full VMs. No account is required.
 - `cua-localhost` - Direct host control safety notes
 - `cua-cloud-sandbox` - Cloud sandbox configuration
 - `cua-control` - Mouse and keyboard primitives reference
-- `cua-shell` - Shell execution semantics
 - `cua-agent-task` - Using cua_run_task with ComputerAgent
 
 ## Configuration

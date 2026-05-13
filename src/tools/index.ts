@@ -10,7 +10,6 @@ import { createSandboxStartTool } from "./sandbox-start.js";
 import { createSandboxStopTool } from "./sandbox-stop.js";
 import { createScreenshotTool } from "./screenshot.js";
 import { createScrollTool } from "./scroll.js";
-import { createShellTool } from "./shell.js";
 import { createTypeTool } from "./type-text.js";
 
 export interface ToolRegistrationOptions {
@@ -29,7 +28,6 @@ export function buildAllTools(options: ToolRegistrationOptions): ReadonlyArray<T
 		createTypeTool(manager, client),
 		createKeyTool(manager, client),
 		createScrollTool(manager, client),
-		createShellTool(manager, client),
 		createRunTaskTool(manager, client),
 	];
 }

@@ -85,18 +85,6 @@ cua_scroll({
 
 ## Execution tools
 
-### `cua_shell`
-
-```jsonc
-cua_shell({
-  command: string,
-  timeoutMs?: number,
-  sandbox?: string
-})
-```
-
-Runs in the target's default shell. Returns `exit`, `stdout`, `stderr`. Output is clipped at ~4 KB inline; for larger output write to a file inside the sandbox and read it back.
-
 ### `cua_run_task`
 
 ```jsonc

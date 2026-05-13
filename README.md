@@ -53,7 +53,6 @@ When the session starts you should see `[pi-cua] ready (mode=local, ...)`.
 | `cua_type`           | Type text                                        |
 | `cua_key`            | Press a key chord (`ctrl+s`, `Return`, etc.)     |
 | `cua_scroll`         | Scroll at coordinates                            |
-| `cua_shell`          | Run a shell command in the target                |
 | `cua_run_task`       | Hand off a goal to Cua's ComputerAgent           |
 
 See [docs/TOOLS.md](docs/TOOLS.md) for full schemas and examples.
@@ -69,7 +68,6 @@ The extension contributes seven markdown skills via the `resources_discover` eve
 | `cua-localhost`      | Unsandboxed host control safety notes                |
 | `cua-cloud-sandbox`  | Cloud (cua.ai) sandbox configuration                 |
 | `cua-control`        | Mouse / keyboard / scroll primitives                 |
-| `cua-shell`          | Sandbox shell vs Pi's built-in bash                  |
 | `cua-agent-task`     | Using `cua_run_task` for high-level goals            |
 
 See [docs/SKILLS.md](docs/SKILLS.md).

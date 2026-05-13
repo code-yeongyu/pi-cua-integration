@@ -8,7 +8,6 @@ export const SKILL_NAMES: ReadonlyArray<string> = [
 	"cua-localhost",
 	"cua-cloud-sandbox",
 	"cua-control",
-	"cua-shell",
 	"cua-agent-task",
 ];
 
