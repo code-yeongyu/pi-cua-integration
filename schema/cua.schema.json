@@ -1,0 +1,159 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://github.com/code-yeongyu/pi-cua-integration/schema/cua.schema.json",
+	"title": "pi-cua-integration configuration",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"mode": {
+			"enum": [
+				"local",
+				"localhost",
+				"cloud"
+			],
+			"default": "local",
+			"description": "Top-level mode selector. Local sandbox is the default."
+		},
+		"local": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"runtime": {
+					"enum": [
+						"auto",
+						"docker",
+						"qemu",
+						"lume",
+						"tart"
+					],
+					"default": "auto"
+				},
+				"image": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"os": {
+							"enum": [
+								"linux",
+								"macos",
+								"windows",
+								"android"
+							]
+						},
+						"version": {
+							"type": "string"
+						},
+						"kind": {
+							"enum": [
+								"vm",
+								"container"
+							]
+						}
+					}
+				},
+				"ephemeral": {
+					"type": "boolean",
+					"default": true
+				}
+			}
+		},
+		"localhost": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"confirmDestructive": {
+					"type": "boolean",
+					"default": true
+				}
+			}
+		},
+		"cloud": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"apiKeyEnv": {
+					"type": "string",
+					"default": "CUA_API_KEY"
+				},
+				"image": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"os": {
+							"enum": [
+								"linux",
+								"macos",
+								"windows",
+								"android"
+							]
+						},
+						"version": {
+							"type": "string"
+						}
+					}
+				},
+				"region": {
+					"type": "string"
+				}
+			}
+		},
+		"python": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"executable": {
+					"type": "string",
+					"default": "python3"
+				},
+				"startupTimeoutMs": {
+					"type": "integer",
+					"minimum": 100,
+					"default": 30000
+				},
+				"requestTimeoutMs": {
+					"type": "integer",
+					"minimum": 100,
+					"default": 60000
+				}
+			}
+		},
+		"telemetry": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"enabled": {
+					"type": "boolean",
+					"default": false
+				}
+			}
+		}
+	},
+	"examples": [
+		{
+			"mode": "local"
+		},
+		{
+			"mode": "local",
+			"local": {
+				"runtime": "docker",
+				"image": {
+					"os": "linux",
+					"kind": "container"
+				}
+			}
+		},
+		{
+			"mode": "localhost",
+			"localhost": {
+				"confirmDestructive": true
+			}
+		},
+		{
+			"mode": "cloud",
+			"cloud": {
+				"apiKeyEnv": "CUA_API_KEY",
+				"region": "north-america"
+			}
+		}
+	]
+}
