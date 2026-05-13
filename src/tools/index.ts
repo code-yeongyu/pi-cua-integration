@@ -4,7 +4,6 @@ import type { SandboxManager } from "../sandbox/manager.js";
 
 import { createClickTool } from "./click.js";
 import { createKeyTool } from "./key.js";
-import { createRunTaskTool } from "./run-task.js";
 import { createSandboxListTool } from "./sandbox-list.js";
 import { createSandboxStartTool } from "./sandbox-start.js";
 import { createSandboxStopTool } from "./sandbox-stop.js";
@@ -28,7 +27,6 @@ export function buildAllTools(options: ToolRegistrationOptions): ReadonlyArray<T
 		createTypeTool(manager, client),
 		createKeyTool(manager, client),
 		createScrollTool(manager, client),
-		createRunTaskTool(manager, client),
 	];
 }
 

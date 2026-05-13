@@ -18,7 +18,6 @@ function makeClient(overrides: Partial<CuaClient> = {}): CuaClient {
 		key: vi.fn(),
 		scroll: vi.fn(),
 		shell: vi.fn(),
-		runTask: vi.fn(),
 		...overrides,
 	} as CuaClient;
 }

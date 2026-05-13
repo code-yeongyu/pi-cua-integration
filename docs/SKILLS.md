@@ -19,7 +19,6 @@ Pi's skill loader picks them up automatically. No manual install is required.
 | `cua-localhost`       | `skills/cua-localhost/SKILL.md`     | Host-control safety + per-OS permissions       |
 | `cua-cloud-sandbox`   | `skills/cua-cloud-sandbox/SKILL.md` | Cloud (cua.ai) sandbox setup                   |
 | `cua-control`         | `skills/cua-control/SKILL.md`       | Mouse / keyboard / scroll primitives reference |
-| `cua-agent-task`      | `skills/cua-agent-task/SKILL.md`    | High-level tasks via `cua_run_task`            |
 
 Each skill follows Anthropic Skills frontmatter (`name`, `description`) so the model can identify when to load it.
 

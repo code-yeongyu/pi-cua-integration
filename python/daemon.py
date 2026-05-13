@@ -40,12 +40,6 @@ try:
 	import cua  # noqa: F401
 	from cua import Sandbox, Image, Localhost
 
-	# cua 0.1.6 meta-package re-exports `ComputerAgent` from a module named
-	# `agent`, but the actual cua-agent distribution installs it as `cua_agent`.
-	# Import directly from cua_agent to avoid the meta-package's broken lazy
-	# attribute path. Track upstream: https://github.com/trycua/cua/issues
-	from cua_agent import ComputerAgent
-
 	_CUA_AVAILABLE = True
 	_CUA_VERSION = getattr(cua, "__version__", None)
 	_CUA_IMPORT_ERROR: str | None = None
@@ -53,7 +47,6 @@ except Exception as error:  # noqa: BLE001
 	Sandbox = None  # type: ignore[assignment]
 	Image = None  # type: ignore[assignment]
 	Localhost = None  # type: ignore[assignment]
-	ComputerAgent = None  # type: ignore[assignment]
 	_CUA_AVAILABLE = False
 	_CUA_VERSION = None
 	_CUA_IMPORT_ERROR = f"{type(error).__name__}: {error}"
@@ -311,58 +304,6 @@ class Daemon:
 		stderr = getattr(result, "stderr", "") or ""
 		exit_code = int(getattr(result, "exit_code", getattr(result, "returncode", 0)))
 		return {"stdout": stdout, "stderr": stderr, "exit_code": exit_code}
-
-	async def handle_run_task(self, params: dict[str, Any]) -> dict[str, Any]:
-		_require_cua()
-		if ComputerAgent is None:
-			raise RuntimeError("ComputerAgent is not importable from cua")
-		target = await self._resolve_target(params)
-		task = str(params["task"])
-		model = params.get("model") or "anthropic/claude-sonnet-4-5"
-		max_turns = params.get("max_turns")
-		agent_kwargs: dict[str, Any] = {"model": model, "tools": [target]}
-		if max_turns is not None:
-			agent_kwargs["max_trajectory_budget"] = {"max_turns": int(max_turns)}
-		agent = ComputerAgent(**agent_kwargs)
-		final_text_parts: list[str] = []
-		screenshots: list[dict[str, Any]] = []
-		tool_calls: list[dict[str, Any]] = []
-		usage: dict[str, Any] | None = None
-		messages = [{"role": "user", "content": task}]
-		async for result in agent.run(messages):
-			output = result.get("output") if isinstance(result, dict) else None
-			if not output:
-				continue
-			for item in output:
-				if not isinstance(item, dict):
-					continue
-				item_type = item.get("type")
-				if item_type == "message":
-					content = item.get("content", [])
-					for block in content:
-						if isinstance(block, dict) and block.get("type") == "output_text":
-							final_text_parts.append(str(block.get("text", "")))
-						elif isinstance(block, dict) and block.get("type") == "text":
-							final_text_parts.append(str(block.get("text", "")))
-				elif item_type == "computer_call":
-					action = item.get("action") or item.get("name") or "unknown"
-					tool_calls.append({"action": str(action), "params": dict(item)})
-				elif item_type == "computer_call_output":
-					out = item.get("output", {})
-					if isinstance(out, dict):
-						url = out.get("image_url") or out.get("data")
-						if isinstance(url, str) and url.startswith("data:image/png;base64,"):
-							b64 = url.split(",", 1)[1]
-							screenshots.append({"png_b64": b64, "width": 0, "height": 0})
-				usage_block = item.get("usage") if isinstance(item, dict) else None
-				if isinstance(usage_block, dict):
-					usage = usage_block
-		return {
-			"final_text": "\n\n".join(part for part in final_text_parts if part),
-			"screenshots": screenshots,
-			"tool_calls": tool_calls,
-			"usage": usage,
-		}
 
 	async def handle_shutdown(self, _params: dict[str, Any]) -> dict[str, Any]:
 		for name in list(self._sandboxes.keys()):

@@ -8,7 +8,6 @@ export const SKILL_NAMES: ReadonlyArray<string> = [
 	"cua-localhost",
 	"cua-cloud-sandbox",
 	"cua-control",
-	"cua-agent-task",
 ];
 
 export function getSkillPaths(): ReadonlyArray<string> {

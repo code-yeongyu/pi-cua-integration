@@ -83,20 +83,9 @@ cua_scroll({
 })
 ```
 
-## Execution tools
+## Delegation
 
-### `cua_run_task`
-
-```jsonc
-cua_run_task({
-  task: string,
-  model?: string,           // default "anthropic/claude-sonnet-4-5"
-  maxTurns?: number,
-  sandbox?: string
-})
-```
-
-Delegates to Cua's `ComputerAgent.run()` inside the daemon. Returns a single text content block with a summary line plus the agent's final answer. Provider keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, etc.) must be set in the shell that launched Pi.
+ComputerAgent / `cua_run_task` is no longer registered. The main pi agent loop drives `cua_screenshot` + `cua_click` / `cua_type` / `cua_key` / `cua_scroll` directly; if you need autonomous multi-step delegation, the global `cua-skill` documents the bash-level `cua do task "..."` invocation against the cua CLI.
 
 ## Error handling
 

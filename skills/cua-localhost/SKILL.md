@@ -28,10 +28,13 @@ and shell command happens on the real OS.
 
 ## Tools that work in this mode
 
-`cua_screenshot`, `cua_click`, `cua_type`, `cua_key`, `cua_scroll`,
-`cua_run_task` - all without a `sandbox` argument. For host shell
-execution use Pi's built-in `bash` tool (no `cua_shell` wrapper - it was
-redundant on localhost and has been removed).
+`cua_screenshot`, `cua_click`, `cua_type`, `cua_key`, `cua_scroll` - all
+without a `sandbox` argument. For host shell execution use Pi's built-in
+`bash` tool. ComputerAgent-style autonomous delegation is no longer
+shipped here - the main pi agent loop drives the cua surface directly,
+and bash-level `cua do task ...` invocations are documented in the
+global `cua-skill` for callers that explicitly want sub-agent
+delegation.
 
 `cua_sandbox_start`, `cua_sandbox_stop`, `cua_sandbox_list` are disabled.
 

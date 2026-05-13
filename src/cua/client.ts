@@ -20,13 +20,6 @@ export interface ShellResult {
 	readonly exitCode: number;
 }
 
-export interface RunTaskResult {
-	readonly finalText: string;
-	readonly screenshots: ReadonlyArray<ScreenshotResult>;
-	readonly toolCalls: ReadonlyArray<{ readonly action: string; readonly params: Record<string, unknown> }>;
-	readonly usage: Record<string, unknown> | null;
-}
-
 export type Target = { readonly kind: "sandbox"; readonly name: string } | { readonly kind: "localhost" };
 
 function encodeTarget(target: Target): Record<string, unknown> {
@@ -59,7 +52,6 @@ export interface CuaClient {
 	key(target: Target, keys: ReadonlyArray<string> | string): Promise<void>;
 	scroll(target: Target, input: { x: number; y: number; scrollX?: number; scrollY?: number }): Promise<void>;
 	shell(target: Target, command: string, options?: { timeoutMs?: number }): Promise<ShellResult>;
-	runTask(target: Target, input: { task: string; model?: string; maxTurns?: number }): Promise<RunTaskResult>;
 }
 
 export function createCuaClient(daemon: DaemonHandle): CuaClient {
@@ -150,29 +142,6 @@ export function createCuaClient(daemon: DaemonHandle): CuaClient {
 				stdout: result.stdout,
 				stderr: result.stderr,
 				exitCode: result.exit_code,
-			};
-		},
-		async runTask(target, input) {
-			const result = await daemon.call<{
-				final_text: string;
-				screenshots: ReadonlyArray<{ png_b64: string; width: number; height: number }>;
-				tool_calls: ReadonlyArray<{ action: string; params: Record<string, unknown> }>;
-				usage: Record<string, unknown> | null;
-			}>("run_task", {
-				...encodeTarget(target),
-				task: input.task,
-				model: input.model ?? null,
-				max_turns: input.maxTurns ?? null,
-			});
-			return {
-				finalText: result.final_text,
-				screenshots: result.screenshots.map((s) => ({
-					pngBase64: s.png_b64,
-					width: s.width,
-					height: s.height,
-				})),
-				toolCalls: result.tool_calls,
-				usage: result.usage,
 			};
 		},
 	};

@@ -50,7 +50,6 @@ or QEMU for full VMs. No account is required.
 | `cua_type`           | Type text                                        |
 | `cua_key`            | Press a key chord (`ctrl+s`, `Return`, etc.)     |
 | `cua_scroll`         | Scroll at coordinates                            |
-| `cua_run_task`       | Hand off a high-level task to Cua's ComputerAgent |
 
 ## Quick recipes
 
@@ -61,11 +60,7 @@ or QEMU for full VMs. No account is required.
   cua_screenshot()
   cua_sandbox_stop({ name: "<returned-name>" })
   ```
-- **High-level task in a sandbox:**
-  ```
-  cua_sandbox_start({ os: "linux" })
-  cua_run_task({ task: "Open Firefox and search 'cua trycua'" })
-  ```
+- **Multi-step drive yourself** (the main agent loop screenshots + clicks via `cua_screenshot` / `cua_click` / `cua_type`; no separate ComputerAgent sub-agent is shipped — delegate that flow to the [`cua-skill`](https://github.com/code-yeongyu/cua-skill) global skill, which documents the `cua do task` CLI for callers that want autonomous delegation).
 
 ## Companion skills
 
@@ -73,7 +68,6 @@ or QEMU for full VMs. No account is required.
 - `cua-localhost` - Direct host control safety notes
 - `cua-cloud-sandbox` - Cloud sandbox configuration
 - `cua-control` - Mouse and keyboard primitives reference
-- `cua-agent-task` - Using cua_run_task with ComputerAgent
 
 ## Configuration
 

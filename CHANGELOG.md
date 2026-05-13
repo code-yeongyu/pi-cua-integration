@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- **Breaking**: `cua_shell` tool and its `cua-shell` skill. On `localhost` mode it was 100% redundant with Pi's built-in `bash` tool, and on `local`/`cloud` modes the same host-shell semantics are accessible through `cua_run_task` or by sending shell commands via the sandbox's `target.shell.run` path inside the daemon. The Python daemon still exposes `handle_shell` for ComputerAgent loops; only the public extension tool surface was retracted. Update tool count from 10 to 9 (`cua_sandbox_start/stop/list` + `cua_screenshot/click/type/key/scroll` + `cua_run_task`). The `cua-shell` skill markdown is also dropped from `resources_discover`.
+- **Breaking**: `cua_run_task` tool, its dedicated `cua-agent-task` skill, the Python daemon's `handle_run_task` handler, and the `cua_agent.ComputerAgent` import. The main pi agent loop already drives `cua_screenshot` + `cua_click` / `cua_type` / `cua_key` / `cua_scroll` directly; wrapping a separate ComputerAgent sub-agent only burnt context tokens and obscured trajectories. Callers that still want autonomous delegation can invoke `cua do task "..."` from bash — documented in the standalone `cua-skill` (https://github.com/code-yeongyu/cua-skill).
+- **Breaking**: `cua_shell` tool and its `cua-shell` skill. On `localhost` mode it was 100% redundant with Pi's built-in `bash` tool, and on `local`/`cloud` modes the same host-shell semantics are accessible by sending shell commands via the sandbox's `target.shell.run` path inside the daemon. The Python daemon still exposes `handle_shell` for that case; only the public extension tool surface was retracted.
+- Final tool count: 8 (`cua_sandbox_start/stop/list` + `cua_screenshot/click/type/key/scroll`). The `cua-shell` and `cua-agent-task` skill markdowns are also dropped from `resources_discover`.
 
 ### Changed
 
@@ -28,11 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `local` (default) — local Cua sandboxes via Docker (XFCE/KASM), QEMU, or Lume; no API key required.
   - `localhost` — direct host control via Cua's `Localhost` API; no sandbox, host machine controlled directly.
   - `cloud` — Cua cloud sandboxes via `CUA_API_KEY`.
-- Skill bundle discovered via `resources_discover`: `cua-overview`, `cua-local-sandbox`, `cua-localhost`, `cua-cloud-sandbox`, `cua-control`, `cua-shell`, `cua-agent-task` markdown skills (note: `cua-shell` removed in a later release — see Unreleased).
+- Skill bundle discovered via `resources_discover`: `cua-overview`, `cua-local-sandbox`, `cua-localhost`, `cua-cloud-sandbox`, `cua-control`, `cua-shell`, `cua-agent-task` markdown skills. (`cua-shell` and `cua-agent-task` later retracted — see Unreleased.)
 - Ten tools registered on session start:
   - `cua_sandbox_start`, `cua_sandbox_stop`, `cua_sandbox_list`
   - `cua_screenshot`, `cua_click`, `cua_type`, `cua_key`, `cua_scroll`
-  - `cua_shell`, `cua_run_task` (note: `cua_shell` removed in a later release — see Unreleased).
+  - `cua_shell`, `cua_run_task`
+  - (`cua_shell` and `cua_run_task` later retracted — see Unreleased.)
 - Persistent Python daemon (`python/daemon.py`) communicates with the extension over JSON-RPC on stdin/stdout. One daemon per Pi session.
 - JSONC configuration loader for `.pi/cua.jsonc` and `~/.pi/cua.json` with project/global merge.
 - TypeBox runtime schema plus generated JSON Schema (`schema/cua.schema.json`).

@@ -19,7 +19,6 @@ function makeClient(): CuaClient {
 		key: vi.fn(),
 		scroll: vi.fn(),
 		shell: vi.fn(),
-		runTask: vi.fn(),
 	} as unknown as CuaClient;
 }
 

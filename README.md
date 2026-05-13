@@ -53,7 +53,6 @@ When the session starts you should see `[pi-cua] ready (mode=local, ...)`.
 | `cua_type`           | Type text                                        |
 | `cua_key`            | Press a key chord (`ctrl+s`, `Return`, etc.)     |
 | `cua_scroll`         | Scroll at coordinates                            |
-| `cua_run_task`       | Hand off a goal to Cua's ComputerAgent           |
 
 See [docs/TOOLS.md](docs/TOOLS.md) for full schemas and examples.
 
@@ -68,7 +67,6 @@ The extension contributes seven markdown skills via the `resources_discover` eve
 | `cua-localhost`      | Unsandboxed host control safety notes                |
 | `cua-cloud-sandbox`  | Cloud (cua.ai) sandbox configuration                 |
 | `cua-control`        | Mouse / keyboard / scroll primitives                 |
-| `cua-agent-task`     | Using `cua_run_task` for high-level goals            |
 
 See [docs/SKILLS.md](docs/SKILLS.md).
 
@@ -89,7 +87,7 @@ See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 |---------------------------|-------------------------|-------------------------------------------------------------|
 | `CUA_API_KEY`             | unset                   | Required for `mode: "cloud"`. Env name configurable.        |
 | `CUA_TELEMETRY_ENABLED`   | `false` (forced off)    | Cua opt-out; this extension forces it off unless overridden.|
-| `ANTHROPIC_API_KEY` etc.  | unset                   | LiteLLM picks them up inside `cua_run_task`.                |
+| `ANTHROPIC_API_KEY` etc.  | unset                   | The pi agent that drives cua reads these for its own LLM calls. |
 
 ## Architecture
 

@@ -35,7 +35,7 @@ Highest risk. The agent can read clipboard, take screenshots of any window, type
 ## Recommended hygiene
 
 1. **Pin Cua**: `pip install cua==<version>`; do not use `latest` in production.
-2. **Scope LLM keys**: Use separate API keys for `cua_run_task` and rotate often.
+2. **Scope LLM keys**: Use separate provider keys for the pi agent driving cua, and rotate often.
 3. **Block destructive shell** by default (`confirmDestructive: true`).
 4. **Set `ephemeral: true`** so sandboxes are destroyed at session shutdown.
 5. **Review skills**: the bundled skills are read-only inside the extension package; users can not modify them at runtime.
