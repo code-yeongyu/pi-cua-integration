@@ -15,10 +15,12 @@ import error in the ready event so the TypeScript side can warn cleanly.
 
 from __future__ import annotations
 
-import asyncio
+import asyncio  # noqa: ANYIO_OK
 import base64
+import importlib
 import io
 import json
+import struct
 import sys
 import traceback
 from typing import Any
@@ -36,20 +38,30 @@ def _log(level: str, message: str) -> None:
 	_emit({"type": "log", "level": level, "message": message})
 
 
-try:
-	import cua  # noqa: F401
-	from cua import Sandbox, Image, Localhost
+def _png_dimensions(png_bytes: bytes) -> tuple[int, int]:
+	if len(png_bytes) < 24 or not png_bytes.startswith(b"\x89PNG\r\n\x1a\n") or png_bytes[12:16] != b"IHDR":
+		raise ValueError("Screenshot bytes are not a PNG image.")
+	width, height = struct.unpack(">II", png_bytes[16:24])
+	return int(width), int(height)
 
-	_CUA_AVAILABLE = True
-	_CUA_VERSION = getattr(cua, "__version__", None)
-	_CUA_IMPORT_ERROR: str | None = None
-except Exception as error:  # noqa: BLE001
-	Sandbox = None  # type: ignore[assignment]
-	Image = None  # type: ignore[assignment]
-	Localhost = None  # type: ignore[assignment]
-	_CUA_AVAILABLE = False
-	_CUA_VERSION = None
-	_CUA_IMPORT_ERROR = f"{type(error).__name__}: {error}"
+
+def _load_cua() -> tuple[Any, Any, Any, Any, bool, str | None, str | None]:
+	try:
+		cua_module = importlib.import_module("cua")
+		return (
+			cua_module,
+			getattr(cua_module, "Sandbox"),
+			getattr(cua_module, "Image"),
+			getattr(cua_module, "Localhost"),
+			True,
+			getattr(cua_module, "__version__", None),
+			None,
+		)
+	except Exception as error:  # noqa: BLE001
+		return None, None, None, None, False, None, f"{type(error).__name__}: {error}"
+
+
+cua, Sandbox, Image, Localhost, _CUA_AVAILABLE, _CUA_VERSION, _CUA_IMPORT_ERROR = _load_cua()
 
 
 class CuaUnavailableError(RuntimeError):
@@ -81,21 +93,21 @@ def _image_from_params(params: dict[str, Any]) -> Any:
 	if version is not None and hasattr(image, "version"):
 		try:
 			image = image.version(version)
-		except Exception:  # noqa: BLE001
+		except Exception as error:  # noqa: BLE001
 			# Image.linux().version() may not exist in some cua releases; ignore
-			pass
+			_log("debug", f"Ignoring unsupported image version {version!r}: {type(error).__name__}: {error}")
 	if hasattr(image, "kind") and kind in {"vm", "container"}:
 		try:
 			image = image.kind(kind)
-		except Exception:  # noqa: BLE001
-			pass
+		except Exception as error:  # noqa: BLE001
+			_log("debug", f"Ignoring unsupported image kind {kind!r}: {type(error).__name__}: {error}")
 	return image
 
 
 def _runtime_from_name(name: str | None) -> Any:
 	if name is None or name == "auto":
 		return None
-	from cua_sandbox import runtime as cua_runtime
+	cua_runtime = importlib.import_module("cua_sandbox.runtime")
 
 	mapping = {
 		"docker": getattr(cua_runtime, "DockerRuntime", None),
@@ -233,6 +245,8 @@ class Daemon:
 			raise TypeError(f"Unsupported screenshot return type: {type(raw).__name__}")
 		width = getattr(raw, "width", 0) if not isinstance(raw, (bytes, str, dict)) else 0
 		height = getattr(raw, "height", 0) if not isinstance(raw, (bytes, str, dict)) else 0
+		if not width or not height:
+			width, height = _png_dimensions(png_bytes)
 		return {
 			"png_b64": base64.b64encode(png_bytes).decode("ascii"),
 			"width": int(width or 0),
@@ -372,8 +386,8 @@ class Daemon:
 				_emit({"id": request_id, "result": {"ok": True}})
 				try:
 					await self.handle_shutdown({})
-				except Exception:  # noqa: BLE001
-					pass
+				except Exception as error:  # noqa: BLE001
+					_log("warning", f"Failed to finish shutdown: {type(error).__name__}: {error}")
 				break
 			asyncio.create_task(self._handle_request(request_id, request))
 
