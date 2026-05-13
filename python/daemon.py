@@ -331,8 +331,8 @@ class Daemon:
 		target = await self._resolve_target(params)
 		x = int(params["x"])
 		y = int(params["y"])
-		scroll_x = int(params.get("scroll_x", 0))
-		scroll_y = int(params.get("scroll_y", 0))
+		scroll_x = int(params.get("scroll_x", params.get("dx", 0)))
+		scroll_y = int(params.get("scroll_y", params.get("dy", 0)))
 		mouse = getattr(target, "mouse", None)
 		if mouse is None or not hasattr(mouse, "scroll"):
 			raise RuntimeError("Target has no .mouse.scroll method")

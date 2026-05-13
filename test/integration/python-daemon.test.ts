@@ -146,4 +146,46 @@ asyncio.run(main())
 		// then
 		expect(result).toEqual([["double_click", 10, 20]]);
 	});
+
+	it("#given dx and dy scroll aliases #when handled #then forwards wheel deltas", async () => {
+		// given
+		const source = `
+import asyncio
+import importlib.util
+import json
+import os
+
+spec = importlib.util.spec_from_file_location("daemon_under_test", os.environ["PI_CUA_DAEMON_PATH"])
+daemon = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(daemon)
+
+class FakeMouse:
+	def __init__(self):
+		self.calls = []
+
+	async def scroll(self, x, y, scroll_x, scroll_y):
+		self.calls.append([x, y, scroll_x, scroll_y])
+
+class FakeTarget:
+	def __init__(self):
+		self.mouse = FakeMouse()
+
+target = FakeTarget()
+
+class TestDaemon(daemon.Daemon):
+	async def _resolve_target(self, params):
+		return target
+
+async def main():
+	await TestDaemon().handle_scroll({"x": 100, "y": 200, "dx": 1, "dy": -3})
+	print(json.dumps(target.mouse.calls))
+
+asyncio.run(main())
+`;
+		// when
+		const result = await runPythonSnippet(source);
+		// then
+		expect(result).toEqual([[100, 200, 1, -3]]);
+	});
 });

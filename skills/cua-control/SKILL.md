@@ -56,12 +56,13 @@ Common chord names: `Return`, `Escape`, `Tab`, `BackSpace`, `Delete`,
 ## `cua_scroll`
 
 ```jsonc
-cua_scroll({ x: 400, y: 300, scrollY: 5 })          // scroll down
-cua_scroll({ x: 400, y: 300, scrollY: -5 })         // scroll up
-cua_scroll({ x: 400, y: 300, scrollX: 3 })          // scroll right
+cua_scroll({ x: 400, y: 300, dy: -5 })              // scroll down
+cua_scroll({ x: 400, y: 300, dy: 5 })               // scroll up
+cua_scroll({ x: 400, y: 300, dx: 3 })               // scroll right
 ```
 
-Positive `scrollY` means down; positive `scrollX` means right.
+Use `dx` / `dy` wheel deltas. Positive `dx` means right; negative `dy`
+means down. `scrollX` / `scrollY` are still accepted aliases.
 
 ## Screenshot-driven workflow
 

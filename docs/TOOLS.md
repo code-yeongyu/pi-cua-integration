@@ -77,11 +77,15 @@ cua_key({
 cua_scroll({
   x: number,
   y: number,
+  dx?: number,
+  dy?: number,
   scrollX?: number,
   scrollY?: number,
   sandbox?: string
 })
 ```
+
+`dx` / `dy` are preferred wheel deltas. `scrollX` / `scrollY` remain accepted aliases. Positive `dx` scrolls right; negative `dy` scrolls down.
 
 ## Delegation
 
