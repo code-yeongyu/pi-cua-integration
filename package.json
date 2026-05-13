@@ -1,0 +1,71 @@
+{
+	"name": "pi-cua-integration",
+	"version": "0.1.0",
+	"description": "Cua (trycua/cua) computer-use integration for the pi coding agent. Exposes Cua sandboxes (local Docker/QEMU/Lume) and unsandboxed localhost control as skills plus tools, with local mode as the default and an opt-in cloud mode.",
+	"type": "module",
+	"license": "MIT",
+	"author": "Yeongyu Kim",
+	"homepage": "https://github.com/code-yeongyu/pi-cua-integration",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/code-yeongyu/pi-cua-integration.git"
+	},
+	"bugs": {
+		"url": "https://github.com/code-yeongyu/pi-cua-integration/issues"
+	},
+	"keywords": [
+		"pi",
+		"pi-mono",
+		"pi-coding-agent",
+		"pi-extension",
+		"senpi",
+		"cua",
+		"trycua",
+		"computer-use",
+		"sandbox",
+		"automation",
+		"agent",
+		"typescript"
+	],
+	"pi": {
+		"extensions": [
+			"./src/index.ts"
+		]
+	},
+	"files": [
+		"src",
+		"schema",
+		"skills",
+		"python",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE",
+		"NOTICE"
+	],
+	"scripts": {
+		"test": "vitest --run",
+		"test:watch": "vitest",
+		"test:integration": "vitest --run test/integration --passWithNoTests",
+		"typecheck": "tsgo --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"check": "tsgo --noEmit && biome check .",
+		"generate:schema": "node scripts/generate-schema.mjs"
+	},
+	"peerDependencies": {
+		"@mariozechner/pi-coding-agent": "*"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.13",
+		"@types/node": "^25.6.0",
+		"@typescript/native-preview": "^7.0.0-dev.20260501.1",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.5"
+	},
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

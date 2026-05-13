@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+
+# Sisyphus working files at project root only
+/.sisyphus/
+
+# Local manual QA artifacts
+/local-ignore/
+/.cua-local/
+
+# Python virtual env (for QA scripts)
+.venv/
+__pycache__/
+*.pyc

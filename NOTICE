@@ -1,0 +1,9 @@
+pi-cua-integration
+
+This package targets the pi coding agent extension API by Mario Zechner
+(@mariozechner/pi-coding-agent, distributed as @code-yeongyu/senpi) and bridges
+it to Cua (https://github.com/trycua/cua, MIT licensed) for computer-use
+sandboxes and host control.
+
+Cua is a registered trademark of TryCua Inc. This package is not affiliated
+with or endorsed by TryCua Inc., Anthropic, or OpenAI.
