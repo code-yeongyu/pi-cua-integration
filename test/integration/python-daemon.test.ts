@@ -57,4 +57,48 @@ asyncio.run(main())
 		// then
 		expect(result).toEqual({ width: 1, height: 2, has_png: true });
 	});
+
+	it("#given key chord string #when handled #then modifiers are held with the action key", async () => {
+		// given
+		const source = `
+import asyncio
+import importlib.util
+import json
+import os
+
+spec = importlib.util.spec_from_file_location("daemon_under_test", os.environ["PI_CUA_DAEMON_PATH"])
+daemon = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(daemon)
+
+class FakeKeyboard:
+	def __init__(self):
+		self.calls = []
+
+	async def keypress(self, keys):
+		self.calls.append(keys)
+
+class FakeTarget:
+	def __init__(self):
+		self.keyboard = FakeKeyboard()
+
+target = FakeTarget()
+
+class TestDaemon(daemon.Daemon):
+	async def _resolve_target(self, params):
+		return target
+
+async def main():
+	test_daemon = TestDaemon()
+	await test_daemon.handle_key({"keys": "cmd+s"})
+	await test_daemon.handle_key({"keys": ["ctrl+a", "return"]})
+	print(json.dumps(target.keyboard.calls))
+
+asyncio.run(main())
+`;
+		// when
+		const result = await runPythonSnippet(source);
+		// then
+		expect(result).toEqual([["cmd", "s"], ["ctrl", "a"], ["return"]]);
+	});
 });

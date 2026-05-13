@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio  # noqa: ANYIO_OK
 import base64
 import importlib
+import inspect
 import io
 import json
 import struct
@@ -43,6 +44,19 @@ def _png_dimensions(png_bytes: bytes) -> tuple[int, int]:
 		raise ValueError("Screenshot bytes are not a PNG image.")
 	width, height = struct.unpack(">II", png_bytes[16:24])
 	return int(width), int(height)
+
+
+def _split_key_chord(chord: str) -> list[str]:
+	parts = [part.strip() for part in chord.split("+") if part.strip()]
+	if not parts:
+		raise ValueError("Key chord must contain at least one key.")
+	return parts
+
+
+async def _maybe_await(value: Any) -> Any:
+	if inspect.isawaitable(value):
+		return await value
+	return value
 
 
 def _load_cua() -> tuple[Any, Any, Any, Any, bool, str | None, str | None]:
@@ -288,7 +302,17 @@ class Daemon:
 			raise RuntimeError("Target has no .keyboard interface")
 		chords = keys if isinstance(keys, list) else [keys]
 		for chord in chords:
-			await keyboard.press(str(chord))
+			parts = _split_key_chord(str(chord))
+			if hasattr(keyboard, "keypress"):
+				await _maybe_await(keyboard.keypress(parts))
+			elif hasattr(keyboard, "hotkey"):
+				await _maybe_await(keyboard.hotkey(parts))
+			elif hasattr(keyboard, "press"):
+				if len(parts) != 1:
+					raise RuntimeError("Target keyboard cannot press multi-key chords.")
+				await _maybe_await(keyboard.press(parts[0]))
+			else:
+				raise RuntimeError("Target has no supported keyboard press method")
 		return {"ok": True}
 
 	async def handle_scroll(self, params: dict[str, Any]) -> dict[str, Any]:
