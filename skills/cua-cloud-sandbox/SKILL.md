@@ -29,7 +29,6 @@ Then export the key before launching Pi:
 
 ```bash
 export CUA_API_KEY=sk_cua-...
-export PI_CUA_ENABLED=1
 ```
 
 ## Fallback

@@ -83,5 +83,6 @@ or QEMU for full VMs. No account is required.
 Project config lives at `.pi/cua.jsonc`. Global config at `~/.pi/cua.json`.
 Schema is at `schema/cua.schema.json` inside the extension package.
 
-The extension is opt-in: set `PI_CUA_ENABLED=1` (or `true`/`yes`/`on`) before
-starting Pi. When unset the extension is a no-op.
+The extension activates whenever Pi loads it. The active mode (default
+`local`, sandboxed) is selected from the config; `localhost` and `cloud`
+must be enabled explicitly.

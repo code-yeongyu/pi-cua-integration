@@ -9,7 +9,7 @@
 | Untrusted code escaping into your dev machine            | Default `local` mode uses a sandbox (Docker or VM). |
 | Accidental destructive actions on the host               | `localhost` mode prompts before destructive shell. |
 | Cloud data leaks via Cua telemetry                       | `CUA_TELEMETRY_ENABLED=false` forced by default. |
-| Unintended extension activation                          | Opt-in via `PI_CUA_ENABLED`. |
+| Unintended host control                                  | Default `mode` is sandboxed `local`; `localhost` must be set explicitly in config. |
 | Wrong sandbox name escalating to unintended target       | The manager rejects unknown sandbox names. |
 | Stale sandboxes leaking across sessions                  | `ephemeral: true` (default) destroys sandboxes on session shutdown. |
 

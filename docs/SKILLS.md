@@ -33,4 +33,4 @@ Each skill follows Anthropic Skills frontmatter (`name`, `description`) so the m
 
 ## Disabling skill discovery
 
-The extension only contributes paths; Pi decides whether to load them. To suppress all skills in a session, disable the extension by unsetting `PI_CUA_ENABLED`. There is no granular skill filter in v0.1.
+The extension only contributes paths; Pi decides whether to load them. To suppress all skills in a session, uninstall the extension (`pi uninstall pi-cua-integration`) or remove it from your Pi extension list. There is no granular skill filter in v0.1.

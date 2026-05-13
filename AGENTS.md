@@ -24,7 +24,7 @@ Cua (trycua/cua) computer-use integration extension for the pi coding agent.
 - Skills (markdown files) live under `skills/` at the repo root and are surfaced via the `resources_discover` event.
 - The Python daemon (`python/daemon.py`) speaks newline-delimited JSON-RPC over stdin/stdout. Keep it dependency-free aside from the `cua` package.
 - Local mode is the default. Cloud mode requires `CUA_API_KEY` and is opt-in via config.
-- The extension is opt-in overall: `PI_CUA_ENABLED` must be truthy or the extension self-disables for the session.
+- The extension activates whenever pi loads it. The user's safety boundary is the config-driven `mode` (default `local` = sandboxed). `localhost` and `cloud` modes must be selected explicitly in `.pi/cua.jsonc` or `~/.pi/cua.json`.
 
 ## Layering
 

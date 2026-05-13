@@ -3,7 +3,6 @@ import { loadConfig } from "./config/load.js";
 import { type CuaClient, createCuaClient } from "./cua/client.js";
 import { type DaemonHandle, startDaemon } from "./cua/daemon.js";
 import { PYTHON_DAEMON_SCRIPT } from "./cua/paths.js";
-import { isPiCuaEnabled } from "./enablement.js";
 import type { ExtensionAPI } from "./pi/index.js";
 import { SandboxManager } from "./sandbox/manager.js";
 import { resolveMode } from "./sandbox/mode.js";
@@ -32,10 +31,6 @@ function buildPythonEnv(
 }
 
 export default function piCuaIntegrationExtension(pi: ExtensionAPI): void {
-	if (!isPiCuaEnabled()) {
-		return;
-	}
-
 	pi.on("resources_discover", async () => {
 		return { skillPaths: Array.from(getSkillPaths()) };
 	});

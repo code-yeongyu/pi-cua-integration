@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking**: removed the `PI_CUA_ENABLED` opt-in environment variable. The extension now activates whenever Pi loads it; the user's safety boundary is the config-driven `mode` (default `local` = sandboxed). Existing configs continue to work; remove `export PI_CUA_ENABLED=...` lines from your shell init.
+
+### Removed
+
+- `src/enablement.ts` and its `test/unit/enablement.test.ts` companion. Reflected in `AGENTS.md`, `README.md`, `docs/SECURITY.md`, `docs/SKILLS.md`, `docs/TOOLS.md`, and the `cua-overview` / `cua-cloud-sandbox` skills.
+
 ## [0.1.0] - 2026-05-13
 
 ### Added
@@ -17,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `localhost` — direct host control via Cua's `Localhost` API; no sandbox, host machine controlled directly.
   - `cloud` — Cua cloud sandboxes via `CUA_API_KEY`.
 - Skill bundle discovered via `resources_discover`: `cua-overview`, `cua-local-sandbox`, `cua-localhost`, `cua-cloud-sandbox`, `cua-control`, `cua-shell`, `cua-agent-task` markdown skills.
-- Ten tools registered when `PI_CUA_ENABLED` is on:
+- Ten tools registered on session start:
   - `cua_sandbox_start`, `cua_sandbox_stop`, `cua_sandbox_list`
   - `cua_screenshot`, `cua_click`, `cua_type`, `cua_key`, `cua_scroll`
   - `cua_shell`, `cua_run_task`

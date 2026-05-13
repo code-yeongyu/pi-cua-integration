@@ -1,5 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { PI_CUA_ENABLED_ENV } from "../../src/enablement.js";
+import { describe, expect, it, vi } from "vitest";
 import piCuaIntegrationExtension from "../../src/index.js";
 
 interface FakePi {
@@ -23,25 +22,9 @@ function makeFakePi(): FakePi {
 	};
 }
 
-afterEach(() => {
-	delete process.env[PI_CUA_ENABLED_ENV];
-});
-
 describe("piCuaIntegrationExtension factory", () => {
-	it("#given PI_CUA_ENABLED unset #when factory runs #then no handlers are registered", () => {
+	it("#given a fresh pi instance #when factory runs #then resources_discover + session lifecycle hooks register", () => {
 		// given
-		const pi = makeFakePi();
-		// when
-		piCuaIntegrationExtension(pi as never);
-		// then
-		expect(pi.on).not.toHaveBeenCalled();
-		expect(pi.registerTool).not.toHaveBeenCalled();
-		expect(pi.registerCommand).not.toHaveBeenCalled();
-	});
-
-	it("#given PI_CUA_ENABLED=1 #when factory runs #then resources_discover + session lifecycle hooks register", () => {
-		// given
-		process.env[PI_CUA_ENABLED_ENV] = "1";
 		const pi = makeFakePi();
 		// when
 		piCuaIntegrationExtension(pi as never);
@@ -51,9 +34,8 @@ describe("piCuaIntegrationExtension factory", () => {
 		expect(pi.handlers.has("session_shutdown")).toBe(true);
 	});
 
-	it("#given PI_CUA_ENABLED=1 #when resources_discover handler runs #then returns local skill paths", async () => {
+	it("#given the factory has run #when resources_discover handler runs #then returns local skill paths", async () => {
 		// given
-		process.env[PI_CUA_ENABLED_ENV] = "true";
 		const pi = makeFakePi();
 		piCuaIntegrationExtension(pi as never);
 		const handler = pi.handlers.get("resources_discover")?.[0];

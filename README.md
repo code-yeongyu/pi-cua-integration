@@ -24,10 +24,7 @@ Cua ([trycua/cua](https://github.com/trycua/cua)) computer-use integration for t
 pi install npm:pi-cua-integration
 pip install cua
 
-# 2. Opt in (the extension is a no-op without this)
-export PI_CUA_ENABLED=1
-
-# 3. (Optional) project policy
+# 2. (Optional) project policy
 mkdir -p .pi && cat > .pi/cua.jsonc <<'EOF'
 {
   "mode": "local",
@@ -38,7 +35,7 @@ mkdir -p .pi && cat > .pi/cua.jsonc <<'EOF'
 }
 EOF
 
-# 4. Run pi
+# 3. Run pi
 pi
 ```
 
@@ -92,7 +89,6 @@ See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 
 | Variable                  | Default                 | Purpose                                                     |
 |---------------------------|-------------------------|-------------------------------------------------------------|
-| `PI_CUA_ENABLED`          | unset                   | Required opt-in. Set to `1`/`true`/`yes`/`on`.              |
 | `CUA_API_KEY`             | unset                   | Required for `mode: "cloud"`. Env name configurable.        |
 | `CUA_TELEMETRY_ENABLED`   | `false` (forced off)    | Cua opt-out; this extension forces it off unless overridden.|
 | `ANTHROPIC_API_KEY` etc.  | unset                   | LiteLLM picks them up inside `cua_run_task`.                |

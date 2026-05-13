@@ -1,6 +1,6 @@
 # Tools
 
-All ten tools become available after `PI_CUA_ENABLED=1` and a successful session start. Schemas are TypeBox shapes consumed by `pi.registerTool`.
+All ten tools become available after a successful session start. Schemas are TypeBox shapes consumed by `pi.registerTool`.
 
 ## Lifecycle tools
 
