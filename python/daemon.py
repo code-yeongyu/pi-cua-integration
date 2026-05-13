@@ -38,7 +38,13 @@ def _log(level: str, message: str) -> None:
 
 try:
 	import cua  # noqa: F401
-	from cua import Sandbox, Image, Localhost, ComputerAgent
+	from cua import Sandbox, Image, Localhost
+
+	# cua 0.1.6 meta-package re-exports `ComputerAgent` from a module named
+	# `agent`, but the actual cua-agent distribution installs it as `cua_agent`.
+	# Import directly from cua_agent to avoid the meta-package's broken lazy
+	# attribute path. Track upstream: https://github.com/trycua/cua/issues
+	from cua_agent import ComputerAgent
 
 	_CUA_AVAILABLE = True
 	_CUA_VERSION = getattr(cua, "__version__", None)
