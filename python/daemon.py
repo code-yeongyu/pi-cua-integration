@@ -276,13 +276,25 @@ class Daemon:
 		mouse = getattr(target, "mouse", None)
 		if mouse is None:
 			raise RuntimeError("Target has no .mouse interface")
+		if button == "left" and clicks == 2 and hasattr(mouse, "double_click"):
+			await _maybe_await(mouse.double_click(x, y))
+			return {"ok": True}
 		for _ in range(clicks):
 			if button == "right":
-				await mouse.right_click(x, y) if hasattr(mouse, "right_click") else await mouse.click(x, y, button="right")
+				if hasattr(mouse, "right_click"):
+					await _maybe_await(mouse.right_click(x, y))
+				else:
+					await _maybe_await(mouse.click(x, y, button="right"))
 			elif button == "middle":
-				await mouse.middle_click(x, y) if hasattr(mouse, "middle_click") else await mouse.click(x, y, button="middle")
+				if hasattr(mouse, "middle_click"):
+					await _maybe_await(mouse.middle_click(x, y))
+				else:
+					await _maybe_await(mouse.click(x, y, button="middle"))
 			else:
-				await mouse.click(x, y) if hasattr(mouse, "click") else await mouse.left_click(x, y)
+				if hasattr(mouse, "click"):
+					await _maybe_await(mouse.click(x, y))
+				else:
+					await _maybe_await(mouse.left_click(x, y))
 		return {"ok": True}
 
 	async def handle_type(self, params: dict[str, Any]) -> dict[str, Any]:

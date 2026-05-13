@@ -101,4 +101,49 @@ asyncio.run(main())
 		// then
 		expect(result).toEqual([["cmd", "s"], ["ctrl", "a"], ["return"]]);
 	});
+
+	it("#given two left clicks #when handled #then emits a native double-click", async () => {
+		// given
+		const source = `
+import asyncio
+import importlib.util
+import json
+import os
+
+spec = importlib.util.spec_from_file_location("daemon_under_test", os.environ["PI_CUA_DAEMON_PATH"])
+daemon = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(daemon)
+
+class FakeMouse:
+	def __init__(self):
+		self.calls = []
+
+	async def click(self, x, y, button="left"):
+		self.calls.append(["click", x, y, button])
+
+	async def double_click(self, x, y):
+		self.calls.append(["double_click", x, y])
+
+class FakeTarget:
+	def __init__(self):
+		self.mouse = FakeMouse()
+
+target = FakeTarget()
+
+class TestDaemon(daemon.Daemon):
+	async def _resolve_target(self, params):
+		return target
+
+async def main():
+	await TestDaemon().handle_click({"x": 10, "y": 20, "button": "left", "clicks": 2})
+	print(json.dumps(target.mouse.calls))
+
+asyncio.run(main())
+`;
+		// when
+		const result = await runPythonSnippet(source);
+		// then
+		expect(result).toEqual([["double_click", 10, 20]]);
+	});
 });
