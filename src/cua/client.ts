@@ -22,6 +22,86 @@ export interface ShellResult {
 
 export type Target = { readonly kind: "sandbox"; readonly name: string } | { readonly kind: "localhost" };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+function expectRecord(value: unknown, method: string): Record<string, unknown> {
+	if (!isRecord(value)) {
+		throw new Error(`Invalid cua daemon response for ${method}: expected object`);
+	}
+	return value;
+}
+
+function expectString(value: unknown, method: string, field: string): string {
+	if (typeof value !== "string") {
+		throw new Error(`Invalid cua daemon response for ${method}: expected string field '${field}'`);
+	}
+	return value;
+}
+
+function expectNumber(value: unknown, method: string, field: string): number {
+	if (typeof value !== "number") {
+		throw new Error(`Invalid cua daemon response for ${method}: expected number field '${field}'`);
+	}
+	return value;
+}
+
+function isSandboxMode(value: unknown): value is SandboxSummary["mode"] {
+	return value === "local" || value === "cloud";
+}
+
+function decodePingResult(value: unknown): { ok: boolean; daemonVersion: string } {
+	const record = expectRecord(value, "ping");
+	if (typeof record.ok !== "boolean") {
+		throw new Error("Invalid cua daemon response for ping: expected boolean field 'ok'");
+	}
+	return { ok: record.ok, daemonVersion: expectString(record.daemon_version, "ping", "daemon_version") };
+}
+
+function decodeStartSandboxResult(value: unknown): { name: string } {
+	const record = expectRecord(value, "start_sandbox");
+	return { name: expectString(record.name, "start_sandbox", "name") };
+}
+
+function decodeListSandboxesResult(value: unknown): ReadonlyArray<SandboxSummary> {
+	const record = expectRecord(value, "list_sandboxes");
+	if (!Array.isArray(record.sandboxes)) {
+		throw new Error("Invalid cua daemon response for list_sandboxes: expected array field 'sandboxes'");
+	}
+	return record.sandboxes.map((entry) => {
+		const sandbox = expectRecord(entry, "list_sandboxes");
+		if (!isSandboxMode(sandbox.mode)) {
+			throw new Error("Invalid cua daemon response for list_sandboxes: expected sandbox mode 'local' or 'cloud'");
+		}
+		return {
+			name: expectString(sandbox.name, "list_sandboxes", "name"),
+			mode: sandbox.mode,
+			osType: expectString(sandbox.os_type, "list_sandboxes", "os_type"),
+			status: expectString(sandbox.status, "list_sandboxes", "status"),
+			createdAt: expectNumber(sandbox.created_at, "list_sandboxes", "created_at"),
+		};
+	});
+}
+
+function decodeScreenshotResult(value: unknown): ScreenshotResult {
+	const record = expectRecord(value, "screenshot");
+	return {
+		pngBase64: expectString(record.png_b64, "screenshot", "png_b64"),
+		width: expectNumber(record.width, "screenshot", "width"),
+		height: expectNumber(record.height, "screenshot", "height"),
+	};
+}
+
+function decodeShellResult(value: unknown): ShellResult {
+	const record = expectRecord(value, "shell");
+	return {
+		stdout: expectString(record.stdout, "shell", "stdout"),
+		stderr: expectString(record.stderr, "shell", "stderr"),
+		exitCode: expectNumber(record.exit_code, "shell", "exit_code"),
+	};
+}
+
 function encodeTarget(target: Target): Record<string, unknown> {
 	if (target.kind === "sandbox") {
 		return { target_kind: "sandbox", target_name: target.name };
@@ -57,49 +137,32 @@ export interface CuaClient {
 export function createCuaClient(daemon: DaemonHandle): CuaClient {
 	return {
 		async ping() {
-			const result = await daemon.call<{ ok: boolean; daemon_version: string }>("ping");
-			return { ok: true as const, daemonVersion: result.daemon_version };
+			const result = decodePingResult(await daemon.call("ping"));
+			return { ok: true as const, daemonVersion: result.daemonVersion };
 		},
 		async startSandbox(input) {
-			const result = await daemon.call<{ name: string }>("start_sandbox", {
-				mode: input.mode,
-				name: input.name ?? null,
-				os: input.os,
-				version: input.version ?? null,
-				kind: input.kind ?? null,
-				runtime: input.runtime ?? null,
-				api_key: input.apiKey ?? null,
-				region: input.region ?? null,
-			});
+			const result = decodeStartSandboxResult(
+				await daemon.call("start_sandbox", {
+					mode: input.mode,
+					name: input.name ?? null,
+					os: input.os,
+					version: input.version ?? null,
+					kind: input.kind ?? null,
+					runtime: input.runtime ?? null,
+					api_key: input.apiKey ?? null,
+					region: input.region ?? null,
+				}),
+			);
 			return { name: result.name };
 		},
 		async stopSandbox(name) {
-			await daemon.call<{ ok: true }>("stop_sandbox", { name });
+			await daemon.call("stop_sandbox", { name });
 		},
 		async listSandboxes() {
-			const result = await daemon.call<{
-				sandboxes: ReadonlyArray<{
-					name: string;
-					mode: "local" | "cloud";
-					os_type: string;
-					status: string;
-					created_at: number;
-				}>;
-			}>("list_sandboxes");
-			return result.sandboxes.map((entry) => ({
-				name: entry.name,
-				mode: entry.mode,
-				osType: entry.os_type,
-				status: entry.status,
-				createdAt: entry.created_at,
-			}));
+			return decodeListSandboxesResult(await daemon.call("list_sandboxes"));
 		},
 		async screenshot(target) {
-			const result = await daemon.call<{ png_b64: string; width: number; height: number }>(
-				"screenshot",
-				encodeTarget(target),
-			);
-			return { pngBase64: result.png_b64, width: result.width, height: result.height };
+			return decodeScreenshotResult(await daemon.call("screenshot", encodeTarget(target)));
 		},
 		async click(target, input) {
 			await daemon.call("click", {
@@ -129,20 +192,13 @@ export function createCuaClient(daemon: DaemonHandle): CuaClient {
 			});
 		},
 		async shell(target, command, options) {
-			const result = await daemon.call<{
-				stdout: string;
-				stderr: string;
-				exit_code: number;
-			}>(
-				"shell",
-				{ ...encodeTarget(target), command, timeout_ms: options?.timeoutMs ?? null },
-				options?.timeoutMs ?? undefined,
+			return decodeShellResult(
+				await daemon.call(
+					"shell",
+					{ ...encodeTarget(target), command, timeout_ms: options?.timeoutMs ?? null },
+					options?.timeoutMs ?? undefined,
+				),
 			);
-			return {
-				stdout: result.stdout,
-				stderr: result.stderr,
-				exitCode: result.exit_code,
-			};
 		},
 	};
 }

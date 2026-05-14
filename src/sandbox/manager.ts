@@ -1,6 +1,7 @@
 import type { ResolvedCuaConfig } from "../config/normalize.js";
 import type { ImageOS, Mode } from "../config/schema.js";
 import type { CuaClient, Target } from "../cua/client.js";
+import { CuaNoActiveSandboxError, CuaSandboxModeError, CuaSandboxNotActiveError, errorMessage } from "../cua/errors.js";
 
 export interface ActiveSandbox {
 	readonly name: string;
@@ -50,16 +51,20 @@ export class SandboxManager {
 	resolveTarget(name?: string): Target {
 		if (this.mode === "localhost") {
 			if (name !== undefined) {
-				throw new Error("Sandbox name was provided but the current mode is localhost; no sandboxes are tracked.");
+				throw new CuaSandboxModeError(
+					"Sandbox name was provided but the current mode is localhost; no sandboxes are tracked.",
+				);
 			}
 			return { kind: "localhost" };
 		}
 		const explicit = name ?? this.defaultSandboxName;
 		if (explicit === undefined) {
-			throw new Error(`No active sandbox; call cua_sandbox_start (mode=${this.mode}) before using control tools.`);
+			throw new CuaNoActiveSandboxError(
+				`No active sandbox; call cua_sandbox_start (mode=${this.mode}) before using control tools.`,
+			);
 		}
 		if (!this.active.has(explicit)) {
-			throw new Error(`Sandbox '${explicit}' is not active in this session.`);
+			throw new CuaSandboxNotActiveError(`Sandbox '${explicit}' is not active in this session.`);
 		}
 		return { kind: "sandbox", name: explicit };
 	}
@@ -72,7 +77,7 @@ export class SandboxManager {
 		readonly runtime?: "auto" | "docker" | "qemu" | "lume" | "tart";
 	}): Promise<ActiveSandbox> {
 		if (this.mode === "localhost") {
-			throw new Error("Cannot start a sandbox in localhost mode.");
+			throw new CuaSandboxModeError("Cannot start a sandbox in localhost mode.");
 		}
 		const isCloud = this.mode === "cloud";
 		const imageDefaults = isCloud ? this.config.cloud.image : this.config.local.image;
@@ -110,7 +115,7 @@ export class SandboxManager {
 
 	async stopSandbox(name: string): Promise<void> {
 		if (!this.active.has(name)) {
-			throw new Error(`Sandbox '${name}' is not active in this session.`);
+			throw new CuaSandboxNotActiveError(`Sandbox '${name}' is not active in this session.`);
 		}
 		await this.client.stopSandbox(name);
 		this.active.delete(name);
@@ -128,7 +133,7 @@ export class SandboxManager {
 				this.active.delete(name);
 				results.push({ name });
 			} catch (error) {
-				results.push({ name, error: (error as Error).message });
+				results.push({ name, error: errorMessage(error) });
 			}
 		}
 		this.defaultSandboxName = undefined;

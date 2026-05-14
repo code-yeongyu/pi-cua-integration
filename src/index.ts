@@ -2,6 +2,7 @@ import { registerCuaCommand } from "./commands/cua.js";
 import { loadConfig } from "./config/load.js";
 import { type CuaClient, createCuaClient } from "./cua/client.js";
 import { type DaemonHandle, startDaemon } from "./cua/daemon.js";
+import { errorMessage } from "./cua/errors.js";
 import { PYTHON_DAEMON_SCRIPT } from "./cua/paths.js";
 import type { ExtensionAPI } from "./pi/index.js";
 import { SandboxManager } from "./sandbox/manager.js";
@@ -65,7 +66,7 @@ export default function piCuaIntegrationExtension(pi: ExtensionAPI): void {
 			});
 		} catch (error) {
 			ctx.ui.notify(
-				`[pi-cua] Failed to start Python daemon: ${(error as Error).message}. Extension disabled for this session.`,
+				`[pi-cua] Failed to start Python daemon: ${errorMessage(error)}. Extension disabled for this session.`,
 				"error",
 			);
 			return;

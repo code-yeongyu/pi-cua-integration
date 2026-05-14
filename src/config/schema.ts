@@ -1,4 +1,4 @@
-import { type Static, type TSchema, Type } from "typebox";
+import { type Static, Type } from "typebox";
 
 export const ModeSchema = Type.Union([Type.Literal("local"), Type.Literal("localhost"), Type.Literal("cloud")], {
 	description: "Top-level mode selector. Local sandbox is the default.",
@@ -144,5 +144,3 @@ export const CuaConfigSchema = Type.Object(
 );
 
 export type CuaConfig = Static<typeof CuaConfigSchema>;
-
-export type { TSchema };

@@ -1,6 +1,13 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { EventEmitter } from "node:events";
 
+import {
+	CuaDaemonExitError,
+	CuaDaemonRequestTimeoutError,
+	CuaDaemonRpcError,
+	CuaDaemonStartupTimeoutError,
+	errorFromUnknown,
+} from "./errors.js";
 import { type DaemonReadyEvent, type DaemonRequest, isLogEvent, isReadyEvent, isResponse } from "./protocol.js";
 
 export interface DaemonStartOptions {
@@ -14,7 +21,7 @@ export interface DaemonStartOptions {
 }
 
 export interface DaemonHandle {
-	call<T = unknown>(method: string, params?: Record<string, unknown>, timeoutMs?: number): Promise<T>;
+	call(method: string, params?: Record<string, unknown>, timeoutMs?: number): Promise<unknown>;
 	shutdown(): Promise<void>;
 	readonly ready: DaemonReadyEvent;
 	readonly events: EventEmitter;
@@ -70,7 +77,7 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 		exited = true;
 		const stderr = stderrChunks.join("").trim();
 		const detail = stderr.length > 0 ? `: ${stderr}` : "";
-		exitReason = new Error(`cua python daemon exited (code=${code}, signal=${signal})${detail}`);
+		exitReason = new CuaDaemonExitError(`cua python daemon exited (code=${code}, signal=${signal})${detail}`);
 		failPending(exitReason);
 		emitter.emit("exit", { code, signal, stderr });
 	});
@@ -115,7 +122,7 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 				pending.delete(parsed.id);
 				clearTimeout(call.timeoutHandle);
 				if (parsed.error !== undefined) {
-					call.reject(new Error(`[cua daemon ${parsed.error.code}] ${parsed.error.message}`));
+					call.reject(new CuaDaemonRpcError(`[cua daemon ${parsed.error.code}] ${parsed.error.message}`));
 				} else {
 					call.resolve(parsed.result);
 				}
@@ -135,7 +142,9 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 
 	const readyPromise = new Promise<DaemonReadyEvent>((resolveReady, rejectReady) => {
 		const timeoutHandle = setTimeout(() => {
-			rejectReady(new Error(`cua daemon did not signal ready within ${options.startupTimeoutMs} ms`));
+			rejectReady(
+				new CuaDaemonStartupTimeoutError(`cua daemon did not signal ready within ${options.startupTimeoutMs} ms`),
+			);
 		}, options.startupTimeoutMs);
 		emitter.once("ready", (event: DaemonReadyEvent) => {
 			clearTimeout(timeoutHandle);
@@ -156,7 +165,7 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 	const handle: DaemonHandle = {
 		ready: resolvedReady,
 		events: emitter,
-		async call<T = unknown>(method: string, params?: Record<string, unknown>, timeoutMs?: number): Promise<T> {
+		async call(method: string, params?: Record<string, unknown>, timeoutMs?: number): Promise<unknown> {
 			if (exited) {
 				throw exitReason ?? new Error("cua daemon has exited");
 			}
@@ -164,14 +173,18 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 			nextId += 1;
 			const effectiveTimeout = timeoutMs ?? options.requestTimeoutMs;
 			const request: DaemonRequest = { id, method, params: params ?? {} };
-			return await new Promise<T>((resolve, reject) => {
+			return await new Promise<unknown>((resolve, reject) => {
 				const timeoutHandle = setTimeout(() => {
 					if (pending.delete(id)) {
-						reject(new Error(`cua daemon call timed out after ${effectiveTimeout} ms: ${method}`));
+						reject(
+							new CuaDaemonRequestTimeoutError(
+								`cua daemon call timed out after ${effectiveTimeout} ms: ${method}`,
+							),
+						);
 					}
 				}, effectiveTimeout);
 				pending.set(id, {
-					resolve: (value) => resolve(value as T),
+					resolve,
 					reject,
 					timeoutHandle,
 				});
@@ -180,7 +193,7 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 				} catch (error) {
 					pending.delete(id);
 					clearTimeout(timeoutHandle);
-					reject(error as Error);
+					reject(errorFromUnknown(error));
 				}
 			});
 		},

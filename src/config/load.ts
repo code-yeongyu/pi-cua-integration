@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
+import { CuaConfigValidationError, hasErrorCode } from "../cua/errors.js";
 import { normalizeConfig, type ResolvedCuaConfig } from "./normalize.js";
-import { type CuaConfig, CuaConfigSchema } from "./schema.js";
+import type { CuaConfig } from "./schema.js";
 
 export const PROJECT_CONFIG_RELATIVE_PATH = ".pi/cua.jsonc";
 export const GLOBAL_CONFIG_RELATIVE_PATH = ".pi/cua.json";
@@ -30,8 +31,7 @@ async function tryRead(
 	try {
 		return await readTextFile(absolutePath);
 	} catch (error) {
-		const nodeError = error as NodeJS.ErrnoException;
-		if (nodeError.code === "ENOENT" || nodeError.code === "ENOTDIR") {
+		if (hasErrorCode(error, "ENOENT") || hasErrorCode(error, "ENOTDIR")) {
 			return undefined;
 		}
 		throw error;
@@ -53,12 +53,14 @@ export function parseJsonc(text: string): unknown {
 	return JSON.parse(stripped);
 }
 
+const CUA_CONFIG_KEYS: ReadonlySet<string> = new Set(["mode", "local", "localhost", "cloud", "python", "telemetry"]);
+
 export function isCuaConfig(value: unknown): value is CuaConfig {
 	if (typeof value !== "object" || value === null) {
 		return false;
 	}
-	for (const key of Object.keys(value as Record<string, unknown>)) {
-		if (!(CuaConfigSchema.properties as Record<string, unknown>)[key]) {
+	for (const key of Object.keys(value)) {
+		if (!CUA_CONFIG_KEYS.has(key)) {
 			return false;
 		}
 	}
@@ -93,7 +95,7 @@ async function loadOne(
 	if (text === undefined) return undefined;
 	const parsed = parseJsonc(text);
 	if (!isCuaConfig(parsed)) {
-		throw new Error(`Invalid pi-cua config at ${absolutePath}: unrecognised top-level keys`);
+		throw new CuaConfigValidationError(`Invalid pi-cua config at ${absolutePath}: unrecognised top-level keys`);
 	}
 	return { raw: parsed, source: absolutePath };
 }

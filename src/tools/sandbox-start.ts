@@ -1,5 +1,6 @@
 import { type Static, Type } from "typebox";
 
+import { CuaSandboxModeError } from "../cua/errors.js";
 import { defineTool, type ToolDefinition } from "../pi/index.js";
 import type { SandboxManager } from "../sandbox/manager.js";
 import { textResult } from "./result.js";
@@ -50,7 +51,7 @@ export function createSandboxStartTool(manager: SandboxManager): ToolDefinition 
 		parameters: SandboxStartParams,
 		async execute(_toolCallId, params) {
 			if (manager.getMode() === "localhost") {
-				throw new Error(
+				throw new CuaSandboxModeError(
 					"cua_sandbox_start is not available in localhost mode; use the control tools directly against the host.",
 				);
 			}

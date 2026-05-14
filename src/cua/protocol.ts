@@ -34,17 +34,37 @@ export interface DaemonLogEvent {
 
 export type DaemonEvent = DaemonReadyEvent | DaemonLogEvent;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+function isDaemonError(value: unknown): value is DaemonErrorResponse["error"] {
+	return isRecord(value) && typeof value.code === "number" && typeof value.message === "string";
+}
+
 export function isResponse(value: unknown): value is DaemonResponse {
-	if (typeof value !== "object" || value === null) return false;
-	const record = value as Record<string, unknown>;
-	return typeof record.id === "number";
+	if (!isRecord(value) || typeof value.id !== "number") return false;
+	if ("result" in value) return true;
+	return isDaemonError(value.error);
 }
 
 export function isEvent(value: unknown): value is DaemonEvent {
-	if (typeof value !== "object" || value === null) return false;
-	const record = value as Record<string, unknown>;
-	if (typeof record.type !== "string") return false;
-	return record.type === "ready" || record.type === "log";
+	if (!isRecord(value)) return false;
+	if (value.type === "ready") {
+		return (
+			typeof value.version === "string" &&
+			typeof value.cuaAvailable === "boolean" &&
+			(typeof value.cuaVersion === "string" || value.cuaVersion === null) &&
+			(typeof value.cuaImportError === "string" || value.cuaImportError === null)
+		);
+	}
+	if (value.type === "log") {
+		return (
+			(value.level === "debug" || value.level === "info" || value.level === "warning" || value.level === "error") &&
+			typeof value.message === "string"
+		);
+	}
+	return false;
 }
 
 export function isReadyEvent(value: unknown): value is DaemonReadyEvent {
