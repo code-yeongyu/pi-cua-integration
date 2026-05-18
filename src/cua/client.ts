@@ -53,33 +53,35 @@ function isSandboxMode(value: unknown): value is SandboxSummary["mode"] {
 
 function decodePingResult(value: unknown): { ok: boolean; daemonVersion: string } {
 	const record = expectRecord(value, "ping");
-	if (typeof record.ok !== "boolean") {
+	if (typeof record["ok"] !== "boolean") {
 		throw new Error("Invalid cua daemon response for ping: expected boolean field 'ok'");
 	}
-	return { ok: record.ok, daemonVersion: expectString(record.daemon_version, "ping", "daemon_version") };
+	return { ok: record["ok"], daemonVersion: expectString(record["daemon_version"], "ping", "daemon_version") };
 }
 
 function decodeStartSandboxResult(value: unknown): { name: string } {
 	const record = expectRecord(value, "start_sandbox");
-	return { name: expectString(record.name, "start_sandbox", "name") };
+	return { name: expectString(record["name"], "start_sandbox", "name") };
 }
 
 function decodeListSandboxesResult(value: unknown): ReadonlyArray<SandboxSummary> {
 	const record = expectRecord(value, "list_sandboxes");
-	if (!Array.isArray(record.sandboxes)) {
+	const sandboxes = record["sandboxes"];
+	if (!Array.isArray(sandboxes)) {
 		throw new Error("Invalid cua daemon response for list_sandboxes: expected array field 'sandboxes'");
 	}
-	return record.sandboxes.map((entry) => {
+	return sandboxes.map((entry) => {
 		const sandbox = expectRecord(entry, "list_sandboxes");
-		if (!isSandboxMode(sandbox.mode)) {
+		const mode = sandbox["mode"];
+		if (!isSandboxMode(mode)) {
 			throw new Error("Invalid cua daemon response for list_sandboxes: expected sandbox mode 'local' or 'cloud'");
 		}
 		return {
-			name: expectString(sandbox.name, "list_sandboxes", "name"),
-			mode: sandbox.mode,
-			osType: expectString(sandbox.os_type, "list_sandboxes", "os_type"),
-			status: expectString(sandbox.status, "list_sandboxes", "status"),
-			createdAt: expectNumber(sandbox.created_at, "list_sandboxes", "created_at"),
+			name: expectString(sandbox["name"], "list_sandboxes", "name"),
+			mode,
+			osType: expectString(sandbox["os_type"], "list_sandboxes", "os_type"),
+			status: expectString(sandbox["status"], "list_sandboxes", "status"),
+			createdAt: expectNumber(sandbox["created_at"], "list_sandboxes", "created_at"),
 		};
 	});
 }
@@ -87,18 +89,18 @@ function decodeListSandboxesResult(value: unknown): ReadonlyArray<SandboxSummary
 function decodeScreenshotResult(value: unknown): ScreenshotResult {
 	const record = expectRecord(value, "screenshot");
 	return {
-		pngBase64: expectString(record.png_b64, "screenshot", "png_b64"),
-		width: expectNumber(record.width, "screenshot", "width"),
-		height: expectNumber(record.height, "screenshot", "height"),
+		pngBase64: expectString(record["png_b64"], "screenshot", "png_b64"),
+		width: expectNumber(record["width"], "screenshot", "width"),
+		height: expectNumber(record["height"], "screenshot", "height"),
 	};
 }
 
 function decodeShellResult(value: unknown): ShellResult {
 	const record = expectRecord(value, "shell");
 	return {
-		stdout: expectString(record.stdout, "shell", "stdout"),
-		stderr: expectString(record.stderr, "shell", "stderr"),
-		exitCode: expectNumber(record.exit_code, "shell", "exit_code"),
+		stdout: expectString(record["stdout"], "shell", "stdout"),
+		stderr: expectString(record["stderr"], "shell", "stderr"),
+		exitCode: expectNumber(record["exit_code"], "shell", "exit_code"),
 	};
 }
 

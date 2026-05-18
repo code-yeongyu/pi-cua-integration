@@ -23,11 +23,11 @@ function buildPythonEnv(
 	options: { telemetryEnabled: boolean; cloudApiKey: string | undefined },
 ): NodeJS.ProcessEnv {
 	const env: NodeJS.ProcessEnv = { ...baseEnv };
-	env.CUA_TELEMETRY_ENABLED = options.telemetryEnabled ? "true" : "false";
+	env["CUA_TELEMETRY_ENABLED"] = options.telemetryEnabled ? "true" : "false";
 	if (options.cloudApiKey !== undefined && options.cloudApiKey.length > 0) {
-		env.CUA_API_KEY = options.cloudApiKey;
+		env["CUA_API_KEY"] = options.cloudApiKey;
 	}
-	env.PYTHONUNBUFFERED = "1";
+	env["PYTHONUNBUFFERED"] = "1";
 	return env;
 }
 
@@ -100,18 +100,26 @@ export default function piCuaIntegrationExtension(pi: ExtensionAPI): void {
 		ctx.ui.notify(`[pi-cua] ready (mode=${resolution.mode}, skill paths=${getSkillRoot()})`, "info");
 	});
 
-	pi.on("session_shutdown", async () => {
+	pi.on("session_shutdown", async (_event, ctx) => {
 		if (state === undefined) return;
 		const { daemon, manager } = state;
 		try {
-			await manager.shutdownAll();
-		} catch {
-			// best-effort cleanup; the daemon shutdown below will kill any leaked Cua state.
+			const results = await manager.shutdownAll();
+			for (const result of results) {
+				if (result.error !== undefined) {
+					ctx.ui.notify(
+						`[pi-cua] Failed to stop sandbox '${result.name}' during shutdown: ${result.error}`,
+						"error",
+					);
+				}
+			}
+		} catch (error) {
+			ctx.ui.notify(`[pi-cua] Failed to stop sandboxes during shutdown: ${errorMessage(error)}`, "error");
 		}
 		try {
 			await daemon.shutdown();
-		} catch {
-			// daemon may have crashed; nothing to clean up here.
+		} catch (error) {
+			ctx.ui.notify(`[pi-cua] Failed to stop Python daemon during shutdown: ${errorMessage(error)}`, "error");
 		}
 		state = undefined;
 	});

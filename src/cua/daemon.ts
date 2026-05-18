@@ -199,10 +199,11 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 		},
 		async shutdown(): Promise<void> {
 			if (exited) return;
+			let shutdownWriteError: Error | undefined;
 			try {
 				write({ id: 0, method: "shutdown", params: {} });
-			} catch {
-				// ignore: stdin may already be closed
+			} catch (error) {
+				shutdownWriteError = errorFromUnknown(error);
 			}
 			const closed = new Promise<void>((resolveClose) => {
 				if (exited) {
@@ -214,6 +215,7 @@ export async function startDaemon(options: DaemonStartOptions): Promise<DaemonHa
 			const killTimeout = setTimeout(() => child.kill("SIGTERM"), 2_000);
 			await closed;
 			clearTimeout(killTimeout);
+			if (shutdownWriteError !== undefined) throw shutdownWriteError;
 		},
 	};
 

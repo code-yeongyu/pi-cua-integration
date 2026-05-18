@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 const execFileAsync = promisify(execFile);
 const daemonPath = fileURLToPath(new URL("../../python/daemon.py", import.meta.url));
-const pythonExecutable = process.env.PI_CUA_PYTHON ?? "python3";
+const pythonExecutable = process.env["PI_CUA_PYTHON"] ?? "python3";
 
 async function runPythonSnippet(source: string): Promise<unknown> {
 	const result = await execFileAsync(pythonExecutable, ["-c", source], {

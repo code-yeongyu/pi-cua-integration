@@ -118,7 +118,7 @@ describe("SandboxManager", () => {
 		// when
 		await manager.startSandbox({});
 		// then
-		const startMock = client.startSandbox as unknown as ReturnType<typeof vi.fn>;
+		const startMock = client.startSandbox as ReturnType<typeof vi.fn>;
 		expect(startMock).toHaveBeenCalledWith(
 			expect.objectContaining({ mode: "cloud", apiKey: "sk-test", region: "us-east" }),
 		);

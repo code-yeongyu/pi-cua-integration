@@ -19,7 +19,7 @@ function makeClient(): CuaClient {
 		key: vi.fn(),
 		scroll: vi.fn(),
 		shell: vi.fn(),
-	} as unknown as CuaClient;
+	} as CuaClient;
 }
 
 describe("createSandboxStartTool", () => {
