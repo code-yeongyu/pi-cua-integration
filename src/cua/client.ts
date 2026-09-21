@@ -136,6 +136,11 @@ export interface CuaClient {
 	shell(target: Target, command: string, options?: { timeoutMs?: number }): Promise<ShellResult>;
 }
 
+// Cold sandbox starts (QEMU download, image pull) can take several minutes.
+// The default 60s RPC timeout would fail the call while the daemon keeps
+// creating the sandbox, orphaning it (name lost client-side).
+const START_SANDBOX_TIMEOUT_MS = 300_000;
+
 export function createCuaClient(daemon: DaemonHandle): CuaClient {
 	return {
 		async ping() {
@@ -153,7 +158,7 @@ export function createCuaClient(daemon: DaemonHandle): CuaClient {
 					runtime: input.runtime ?? null,
 					api_key: input.apiKey ?? null,
 					region: input.region ?? null,
-				}),
+				}, START_SANDBOX_TIMEOUT_MS),
 			);
 			return { name: result.name };
 		},
