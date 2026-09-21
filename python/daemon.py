@@ -21,8 +21,10 @@ import importlib
 import inspect
 import io
 import json
+import os
 import struct
 import sys
+import threading
 import traceback
 from typing import Any
 
@@ -393,12 +395,35 @@ class Daemon:
 			}
 		)
 		loop = asyncio.get_running_loop()
-		reader = asyncio.StreamReader(loop=loop)
-		protocol = asyncio.StreamReaderProtocol(reader)
-		await loop.connect_read_pipe(lambda: protocol, sys.stdin)
 		assert self._stop is not None
+		line_queue: asyncio.Queue[bytes] = asyncio.Queue()
+
+		def _pump_stdin() -> None:
+			# CPython's Windows proactor cannot register plain fds (e.g.
+			# sys.stdin) with IOCP: _register_with_iocp passes obj.fileno()
+			# to CreateIoCompletionPort which expects a HANDLE (bpo-26832).
+			# Read stdin in a worker thread and feed the queue thread-safely.
+			# Read raw bytes on fd 0 (unbuffered): a blocked buffered reader
+			# would hold the stdin lock at interpreter shutdown and abort.
+			partial = b""
+			try:
+				while True:
+					chunk = os.read(0, 4096)
+					if not chunk:
+						break
+					partial += chunk
+					while b"\n" in partial:
+						line, partial = partial.split(b"\n", 1)
+						loop.call_soon_threadsafe(line_queue.put_nowait, line)
+			finally:
+				try:
+					loop.call_soon_threadsafe(line_queue.put_nowait, b"")
+				except (RuntimeError, OSError):
+					pass
+
+		threading.Thread(target=_pump_stdin, daemon=True, name="cua-stdin").start()
 		while not self._stop.is_set():
-			line = await reader.readline()
+			line = await line_queue.get()
 			if not line:
 				break
 			text = line.decode("utf-8", errors="replace").strip()
