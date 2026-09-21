@@ -96,28 +96,42 @@ def _image_from_params(params: dict[str, Any]) -> Any:
 	os_type = params.get("os") or "linux"
 	version = params.get("version")
 	kind = params.get("kind") or "container"
-	if os_type == "linux":
-		image = Image.linux()
-	elif os_type == "macos":
-		image = Image.macos()
-	elif os_type == "windows":
-		image = Image.windows()
-	elif os_type == "android":
-		image = Image.android()
-	else:
+	constructor = {
+		"linux": Image.linux,
+		"macos": Image.macos,
+		"windows": Image.windows,
+		"android": Image.android,
+	}.get(os_type)
+	if constructor is None:
 		raise ValueError(f"Unsupported os: {os_type}")
-	if version is not None and hasattr(image, "version"):
-		try:
-			image = image.version(version)
-		except Exception as error:  # noqa: BLE001
-			# Image.linux().version() may not exist in some cua releases; ignore
-			_log("debug", f"Ignoring unsupported image version {version!r}: {type(error).__name__}: {error}")
-	if hasattr(image, "kind") and kind in {"vm", "container"}:
-		try:
-			image = image.kind(kind)
-		except Exception as error:  # noqa: BLE001
-			_log("debug", f"Ignoring unsupported image kind {kind!r}: {type(error).__name__}: {error}")
-	return image
+	# SDK >= 0.1.6: Image is a dataclass; `kind`/`version` are fields, not
+	# callable methods (calling them raised TypeError and the params were
+	# silently dropped). The classmethods accept them as parameters.
+	kwargs: dict[str, Any] = {}
+	if version is not None:
+		kwargs["version"] = version
+	if kind in {"vm", "container"}:
+		kwargs["kind"] = kind
+	else:
+		_log("debug", f"Ignoring unsupported image kind {kind!r}")
+	try:
+		return constructor(**kwargs)
+	except TypeError as error:
+		# Older SDKs whose classmethods do not accept these parameters:
+		# build with defaults and try the legacy builder methods.
+		_log("debug", f"Image constructor rejected {kwargs!r}: {error}; trying legacy builder methods")
+		image = constructor()
+		if version is not None:
+			try:
+				image = image.version(version)
+			except Exception as error:  # noqa: BLE001
+				_log("debug", f"Ignoring unsupported image version {version!r}: {error}")
+		if kind in {"vm", "container"}:
+			try:
+				image = image.kind(kind)
+			except Exception as error:  # noqa: BLE001
+				_log("debug", f"Ignoring unsupported image kind {kind!r}: {error}")
+		return image
 
 
 def _runtime_from_name(name: str | None) -> Any:
