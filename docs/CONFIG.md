@@ -55,6 +55,12 @@ Both are optional. When neither exists the defaults apply (local mode, Linux XFC
 | `startupTimeoutMs`    | integer | `30000`     |
 | `requestTimeoutMs`    | integer | `60000`     |
 
+`executable` is the interpreter the extension spawns for `python/daemon.py`; install `cua` into exactly this interpreter (`<executable> -m pip install --upgrade cua`). Current `cua` releases require Python `>=3.12,<3.14`:
+
+- Python 3.14 is outside the supported range.
+- On Python 3.11, pip resolves the historical `cua==0.1.0`, whose import surface does not match the daemon's `import cua`; the session then reports that the Cua package is not installed.
+- On Windows, `python3` is often unavailable or resolves to the Microsoft Store alias (child exit code `9009`). Set an absolute path, for example `"executable": "C:/Path/To/Python313/python.exe"`, in `~/.pi/cua.json`.
+
 ## `telemetry`
 
 | Key       | Type    | Default |

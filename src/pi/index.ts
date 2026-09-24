@@ -10,6 +10,6 @@ export type {
 	SessionShutdownEvent,
 	SessionStartEvent,
 	ToolDefinition,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 
-export { defineTool } from "@mariozechner/pi-coding-agent";
+export { defineTool } from "@earendil-works/pi-coding-agent";
