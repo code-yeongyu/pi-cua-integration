@@ -1,9 +1,24 @@
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { isCuaConfig, loadConfig, mergeConfigs, parseJsonc, stripJsonc } from "../../../src/config/load.js";
+import {
+	GLOBAL_CONFIG_RELATIVE_PATH,
+	isCuaConfig,
+	loadConfig,
+	mergeConfigs,
+	PROJECT_CONFIG_RELATIVE_PATH,
+	parseJsonc,
+	stripJsonc,
+} from "../../../src/config/load.js";
 
 const FAKE_HOME = "/fake-home";
 const FAKE_CWD = "/fake-cwd";
+
+// Build fixture paths with the same path API as production so the tests
+// behave identically on POSIX and Windows checkouts (issue #32).
+const PROJECT_CONFIG_PATH = resolve(FAKE_CWD, PROJECT_CONFIG_RELATIVE_PATH);
+const GLOBAL_CONFIG_PATH = resolve(FAKE_HOME, GLOBAL_CONFIG_RELATIVE_PATH);
 
 function makeReader(map: Map<string, string>): (absolutePath: string) => Promise<string> {
 	return async (absolutePath: string): Promise<string> => {
@@ -120,7 +135,7 @@ describe("loadConfig", () => {
 
 	it("#given a project config exists #when loaded #then uses it", async () => {
 		// given
-		const reader = makeReader(new Map([[`${FAKE_CWD}/.pi/cua.jsonc`, `{ "mode": "localhost" }`]]));
+		const reader = makeReader(new Map([[PROJECT_CONFIG_PATH, `{ "mode": "localhost" }`]]));
 		// when
 		const loaded = await loadConfig({ cwd: FAKE_CWD, home: FAKE_HOME, readTextFile: reader });
 		// then
@@ -132,8 +147,8 @@ describe("loadConfig", () => {
 		// given
 		const reader = makeReader(
 			new Map([
-				[`${FAKE_HOME}/.pi/cua.json`, `{ "mode": "cloud", "cloud": { "region": "us-east" } }`],
-				[`${FAKE_CWD}/.pi/cua.jsonc`, `{ "cloud": { "region": "eu-west" } }`],
+				[GLOBAL_CONFIG_PATH, `{ "mode": "cloud", "cloud": { "region": "us-east" } }`],
+				[PROJECT_CONFIG_PATH, `{ "cloud": { "region": "eu-west" } }`],
 			]),
 		);
 		// when
@@ -146,7 +161,7 @@ describe("loadConfig", () => {
 
 	it("#given invalid top-level key #when loaded #then throws", async () => {
 		// given
-		const reader = makeReader(new Map([[`${FAKE_CWD}/.pi/cua.jsonc`, `{ "mode": "local", "bogus": true }`]]));
+		const reader = makeReader(new Map([[PROJECT_CONFIG_PATH, `{ "mode": "local", "bogus": true }`]]));
 		// when / then
 		await expect(loadConfig({ cwd: FAKE_CWD, home: FAKE_HOME, readTextFile: reader })).rejects.toThrow(
 			/unrecognised top-level keys/,
