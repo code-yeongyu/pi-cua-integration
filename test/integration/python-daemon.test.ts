@@ -1,4 +1,5 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { once } from "node:events";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -187,5 +188,35 @@ asyncio.run(main())
 		const result = await runPythonSnippet(source);
 		// then
 		expect(result).toEqual([[100, 200, 1, -3]]);
+	});
+});
+
+describe("python daemon stdin loop", () => {
+	it("#given a blank line between requests #when stdin closes #then every request is answered and the daemon exits cleanly", async () => {
+		// given
+		const child = spawn(pythonExecutable, [daemonPath], { stdio: ["pipe", "pipe", "pipe"] });
+		let stdout = "";
+		let stderr = "";
+		child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+			stdout += chunk;
+		});
+		child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+			stderr += chunk;
+		});
+		const closed = once(child, "close");
+		// when
+		child.stdin.end('{"id":1,"method":"ping","params":{}}\n\n{"id":2,"method":"ping","params":{}}\n');
+		const [exitCode] = await closed;
+		// then
+		const responseIds = stdout
+			.split("\n")
+			.filter((line) => line.trim().length > 0)
+			.map((line): unknown => JSON.parse(line))
+			.flatMap((message) =>
+				typeof message === "object" && message !== null && "id" in message ? [message.id] : [],
+			);
+		expect(responseIds).toEqual([1, 2]);
+		expect(exitCode).toBe(0);
+		expect(stderr).toBe("");
 	});
 });
