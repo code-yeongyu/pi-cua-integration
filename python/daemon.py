@@ -396,7 +396,16 @@ class Daemon:
 		)
 		loop = asyncio.get_running_loop()
 		assert self._stop is not None
-		line_queue: asyncio.Queue[bytes] = asyncio.Queue()
+		# None is the EOF sentinel; an empty bytes item is a blank input line.
+		line_queue: asyncio.Queue[bytes | None] = asyncio.Queue()
+
+		def _deliver(item: bytes | None) -> bool:
+			try:
+				loop.call_soon_threadsafe(line_queue.put_nowait, item)
+				return True
+			except RuntimeError:
+				# Event loop already closed (daemon shutting down).
+				return False
 
 		def _pump_stdin() -> None:
 			# CPython's Windows proactor cannot register plain fds (e.g.
@@ -414,17 +423,23 @@ class Daemon:
 					partial += chunk
 					while b"\n" in partial:
 						line, partial = partial.split(b"\n", 1)
-						loop.call_soon_threadsafe(line_queue.put_nowait, line)
-			finally:
+						if not _deliver(line):
+							return
+			except OSError as error:
+				# Log on the loop thread so stdout writes never interleave.
+				message = f"stdin reader stopped: {type(error).__name__}: {error}"
 				try:
-					loop.call_soon_threadsafe(line_queue.put_nowait, b"")
-				except (RuntimeError, OSError):
-					pass
+					loop.call_soon_threadsafe(_log, "warning", message)
+				except RuntimeError:
+					return
+			if partial:
+				_deliver(partial)
+			_deliver(None)
 
 		threading.Thread(target=_pump_stdin, daemon=True, name="cua-stdin").start()
 		while not self._stop.is_set():
 			line = await line_queue.get()
-			if not line:
+			if line is None:
 				break
 			text = line.decode("utf-8", errors="replace").strip()
 			if not text:
