@@ -4,15 +4,17 @@ Cua (trycua/cua) computer-use integration extension for the pi coding agent.
 
 ## Commands
 
-- `npm install` — install dependencies
-- `npm test` — run vitest unit tests once
-- `npm run test:watch` — vitest in watch mode
-- `npm run test:integration` — run integration tests (gated by env vars)
-- `npm run typecheck` — run `tsgo --noEmit` with strict TypeScript settings
-- `npm run lint` — run Biome lint and format check
-- `npm run lint:fix` — auto-fix Biome issues
-- `npm run check` — typecheck + lint (run before every commit)
-- `npm run generate:schema` — regenerate `schema/cua.schema.json` from `scripts/generate-schema.mjs`
+Bun 1.4.2 is the dev and CI toolchain; keep `package-lock.json` in sync too (npm consumers and the `npm-consumer` CI job use it).
+
+- `bun install` — install dependencies (then `npm install --package-lock-only --ignore-scripts` when dependencies change)
+- `bun run test` — run vitest unit tests once
+- `bun run test:watch` — vitest in watch mode
+- `bun run test:integration` — run the Python daemon integration tests (needs Python 3.12+)
+- `bun run typecheck` — run `tsgo --noEmit` with strict TypeScript settings
+- `bun run lint` — run Biome lint and format check
+- `bun run lint:fix` — auto-fix Biome issues
+- `bun run check` — typecheck + lint (run before every commit)
+- `bun run generate:schema` — regenerate `schema/cua.schema.json` from `scripts/generate-schema.mjs`
 
 ## Conventions
 
@@ -20,7 +22,7 @@ Cua (trycua/cua) computer-use integration extension for the pi coding agent.
 - Tabs for indentation (width 3 for display), line width 120 — enforced by Biome.
 - Do not use `any`, `@ts-ignore`, `@ts-expect-error`, or non-essential type assertions.
 - Tests use vitest with `#given <X> #when <Y> #then <Z>` description naming and `// given / // when / // then` body comments.
-- Public Pi SDK imports MUST go through `src/pi/` boundary barrel; never import `@mariozechner/pi-coding-agent` (or `@code-yeongyu/senpi`) directly from feature modules.
+- Public Pi SDK imports MUST go through `src/pi/` boundary barrel; never import `@earendil-works/pi-coding-agent` (or `@code-yeongyu/senpi`) directly from feature modules.
 - Skills (markdown files) live under `skills/` at the repo root and are surfaced via the `resources_discover` event.
 - The Python daemon (`python/daemon.py`) speaks newline-delimited JSON-RPC over stdin/stdout. Keep it dependency-free aside from the `cua` package.
 - Local mode is the default. Cloud mode requires `CUA_API_KEY` and is opt-in via config.

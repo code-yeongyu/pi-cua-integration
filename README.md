@@ -17,12 +17,18 @@ Cua ([trycua/cua](https://github.com/trycua/cua)) computer-use integration for t
 
 ★ default. If `mode: "cloud"` is selected but `CUA_API_KEY` is missing, the extension falls back to `local` with a warning.
 
+## Requirements
+
+- Node.js `>=22.19.0` (the pi runtime's minimum).
+- Python `>=3.12,<3.14` (3.12 or 3.13) with the [`cua`](https://pypi.org/project/cua/) package. Current `cua` releases require this range: Python 3.14 is not supported yet, and on Python 3.11 pip silently resolves the historical `cua==0.1.0`, which does not provide the `import cua` surface the daemon needs.
+- Install `cua` into the **same interpreter** the extension launches. The extension runs `python.executable` from the config (default `python3`); see [docs/CONFIG.md](docs/CONFIG.md#python).
+
 ## Quick start
 
 ```bash
 # 1. Install
 pi install npm:pi-cua-integration
-pip install cua
+python3 -m pip install --upgrade cua   # python3 must be 3.12 or 3.13
 
 # 2. (Optional) project policy
 mkdir -p .pi && cat > .pi/cua.jsonc <<'EOF'
@@ -40,6 +46,23 @@ pi
 ```
 
 When the session starts you should see `[pi-cua] ready (mode=local, ...)`.
+
+### Windows
+
+On Windows `python3` is often missing or resolves to the Microsoft Store execution alias, which makes the daemon fail to start (`cua python daemon exited (code=9009)`). Install `cua` with one exact interpreter and point `python.executable` at that same interpreter:
+
+```powershell
+C:\Path\To\Python313\python.exe -m pip install --upgrade cua
+```
+
+```jsonc
+// %USERPROFILE%\.pi\cua.json
+{
+  "python": {
+    "executable": "C:/Path/To/Python313/python.exe"
+  }
+}
+```
 
 ## Tools
 
@@ -77,7 +100,7 @@ Policy lives in JSONC files (project beats global, key-by-key merge):
 - `.pi/cua.jsonc` - project policy
 - `~/.pi/cua.json` - global user policy
 
-Schema: [schema/cua.schema.json](schema/cua.schema.json). Regenerate with `npm run generate:schema`.
+Schema: [schema/cua.schema.json](schema/cua.schema.json). Regenerate with `bun run generate:schema`.
 
 See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 
@@ -121,13 +144,18 @@ See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 
 ## Development
 
+Development and CI use [Bun](https://bun.sh) 1.4.2:
+
 ```bash
-npm install
-npm run check
-npm test
+bun install
+bun run check
+bun run test
+bun run test:integration   # needs python3 (3.12+) on PATH or PI_CUA_PYTHON
 ```
 
-Manual QA scripts live in `scripts/qa-*.sh` once written. The Python daemon contract is verified by `test/integration/python-daemon.test.ts` (gated by `PI_CUA_INTEGRATION_TEST=1`).
+`package-lock.json` is kept in sync as well, so the npm flow (`npm ci && npm test`) keeps working for consumers and is checked in CI.
+
+The Python daemon contract is verified by `test/integration/python-daemon.test.ts`.
 
 ## License
 
