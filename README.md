@@ -26,8 +26,10 @@ Cua ([trycua/cua](https://github.com/trycua/cua)) computer-use integration for t
 ## Quick start
 
 ```bash
-# 1. Install
-pi install npm:pi-cua-integration
+# 1. Install (from GitHub; the package is not published to npm)
+pi install git:github.com/code-yeongyu/pi-cua-integration
+# or, with senpi:
+senpi install git:github.com/code-yeongyu/pi-cua-integration
 python3 -m pip install --upgrade cua   # python3 must be 3.12 or 3.13
 
 # 2. (Optional) project policy
