@@ -4,7 +4,7 @@ Cua (trycua/cua) computer-use integration extension for the pi coding agent.
 
 ## Commands
 
-Bun 1.4.2 is the dev and CI toolchain; keep `package-lock.json` in sync too (npm consumers and the `npm-consumer` CI job use it).
+Bun 1.4.4 is the dev and CI toolchain; keep `package-lock.json` in sync too (npm consumers and the `npm-consumer` CI job use it).
 
 - `bun install` — install dependencies (then `npm install --package-lock-only --ignore-scripts` when dependencies change)
 - `bun run test` — run vitest unit tests once
