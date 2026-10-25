@@ -12,7 +12,7 @@ bun run test:integration
 npm pack --dry-run
 ```
 
-Development and CI use Bun 1.4.2. When you change dependencies, refresh both lockfiles: `bun install` (updates `bun.lock`) and `npm install --package-lock-only --ignore-scripts` (updates `package-lock.json`, which npm consumers rely on).
+Development and CI use Bun 1.4.4. When you change dependencies, refresh both lockfiles: `bun install` (updates `bun.lock`) and `npm install --package-lock-only --ignore-scripts` (updates `package-lock.json`, which npm consumers rely on).
 
 If behavior changes, update `README.md`, `CHANGELOG.md`, and tests.
 

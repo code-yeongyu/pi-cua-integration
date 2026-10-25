@@ -146,7 +146,7 @@ See [docs/CONFIG.md](docs/CONFIG.md) for the full schema and annotated examples.
 
 ## Development
 
-Development and CI use [Bun](https://bun.sh) 1.4.2:
+Development and CI use [Bun](https://bun.sh) 1.4.4:
 
 ```bash
 bun install

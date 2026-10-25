@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - README install instructions use `pi install git:github.com/code-yeongyu/pi-cua-integration` (and `senpi install git:...`); the package is not published to npm.
 - The publish workflow skips the npm publish step with a notice when the `NODE_AUTH_TOKEN` secret is not configured, so release runs stay green.
+- CI and the development docs use Bun 1.4.4 (was 1.4.2).
 
 ## [0.2.0] - 2026-09-24
 
